@@ -66,12 +66,13 @@ function AdminPhoneManager({ accessToken }: { accessToken: string }) {
       return;
     }
     const client = supabase;
+    const selectedPhoneId = selectedPhone.id;
 
     async function loadOffers() {
       const { data, error } = await client
         .from("phone_prices")
         .select("*")
-        .eq("phone_id", selectedPhone.id)
+        .eq("phone_id", selectedPhoneId)
         .order("price", { ascending: true });
 
       if (error) {
