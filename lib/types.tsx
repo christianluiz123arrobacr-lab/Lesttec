@@ -43,3 +43,16 @@ export type PhonePrice = {
   url: string;
   updatedAt: string;
 };
+
+export type UserProfile = {
+  id: string;
+  role: "user" | "admin";
+  fullName: string;
+  phone: string;
+  city: string;
+  state: string;
+  budgetMin: number;
+  budgetMax: number;
+  preferredBrands: string[];
+  wantsOffers: boolean;
+};
