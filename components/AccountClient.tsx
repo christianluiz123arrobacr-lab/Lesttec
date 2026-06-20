@@ -45,9 +45,10 @@ export function AccountClient() {
 
   useEffect(() => {
     if (!supabase) return;
+    const client = supabase;
 
     async function loadProfile() {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await client.auth.getSession();
       const user = sessionData.session?.user;
 
       if (!user) {
@@ -58,7 +59,7 @@ export function AccountClient() {
       setUserId(user.id);
       setEmail(user.email ?? "");
 
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      const { data } = await client.from("profiles").select("*").eq("id", user.id).maybeSingle();
 
       if (data) {
         const nextProfile = mapProfile(data);
