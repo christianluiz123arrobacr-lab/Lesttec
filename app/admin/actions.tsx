@@ -18,7 +18,6 @@ function textValue(formData: FormData, key: string) {
 
 export async function createPhoneAction(_previousState: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = getSupabaseServiceClient();
-  const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!supabase) {
     return {
@@ -27,10 +26,34 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     };
   }
 
-  if (!adminPassword || textValue(formData, "admin_password") !== adminPassword) {
+  const accessToken = textValue(formData, "access_token");
+
+  if (!accessToken) {
     return {
       ok: false,
-      message: "Senha admin incorreta ou ADMIN_PASSWORD nao configurada."
+      message: "Faca login como admin para cadastrar celulares."
+    };
+  }
+
+  const { data: userData, error: userError } = await supabase.auth.getUser(accessToken);
+
+  if (userError || !userData.user) {
+    return {
+      ok: false,
+      message: "Sessao invalida. Entre novamente."
+    };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userData.user.id)
+    .maybeSingle();
+
+  if (profileError || profile?.role !== "admin") {
+    return {
+      ok: false,
+      message: "Acesso negado. Seu usuario nao e admin."
     };
   }
 
