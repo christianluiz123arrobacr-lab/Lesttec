@@ -84,6 +84,11 @@ export function AccountClient() {
     setProfile((current) => ({ ...current, [key]: value }));
   }
 
+  function switchMode(nextMode: Mode) {
+    setMode(nextMode);
+    setMessage("");
+  }
+
   async function handleAuth(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return setMessage("Supabase nao esta configurado.");
@@ -117,14 +122,19 @@ export function AccountClient() {
       }
 
       if (data.user) {
-        await supabase.from("profiles").upsert({
+        const { error: profileError } = await supabase.from("profiles").upsert({
           id: data.user.id,
           role: "user",
           ...metadata
         });
+
+        if (profileError) {
+          setLoading(false);
+          return setMessage(profileError.message);
+        }
       }
 
-      setMessage("Conta criada. Se o Supabase pedir confirmacao, confirme seu e-mail antes de entrar.");
+      window.location.href = "/";
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -134,8 +144,7 @@ export function AccountClient() {
       }
 
       setUserId(data.user.id);
-      setMessage("Login feito com sucesso.");
-      window.location.reload();
+      window.location.href = "/";
     }
 
     setLoading(false);
@@ -249,7 +258,7 @@ export function AccountClient() {
               <button className="button" disabled={loading} type="submit">
                 {mode === "login" ? "Entrar" : "Criar conta"}
               </button>
-              <button className="button ghost" type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+              <button className="button ghost" type="button" onClick={() => switchMode(mode === "login" ? "register" : "login")}>
                 {mode === "login" ? "Criar conta" : "Ja tenho conta"}
               </button>
             </>
