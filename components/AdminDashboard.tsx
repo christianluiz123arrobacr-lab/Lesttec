@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
-import { AdminPhoneManager } from "./AdminPhoneManager";
+import { AdminPhoneForm } from "./AdminPhoneForm";
 
 type AdminState = "loading" | "logged-out" | "forbidden" | "admin";
 type AdminStats = {
@@ -107,11 +107,11 @@ export function AdminDashboard() {
       </div>
 
       <div className="admin-layout">
-        <AdminPhoneManager accessToken={accessToken} />
+        <AdminPhoneForm accessToken={accessToken} />
         <aside className="notice">
           <h3>Painel liberado</h3>
           <p>Logado como admin: {email}</p>
-          <p>Por aqui voce cadastra, edita e exclui celulares. Tambem da para adicionar ofertas por loja com link afiliado.</p>
+          <p>Por aqui voce cadastra celulares. O proximo passo e adicionar edicao, exclusao e cadastro de ofertas por loja.</p>
         </aside>
       </div>
     </div>
