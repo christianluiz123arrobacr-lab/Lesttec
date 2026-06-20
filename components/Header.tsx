@@ -11,9 +11,10 @@ export function Header() {
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
+    const client = supabase;
 
     async function loadUser() {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await client.auth.getSession();
       const user = sessionData.session?.user;
       setIsLoggedIn(Boolean(user));
 
@@ -22,13 +23,13 @@ export function Header() {
         return;
       }
 
-      const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      const { data } = await client.from("profiles").select("role").eq("id", user.id).maybeSingle();
       setIsAdmin(data?.role === "admin");
     }
 
     loadUser();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+    const { data: listener } = client.auth.onAuthStateChange(() => {
       loadUser();
     });
 
