@@ -16,13 +16,22 @@ function textValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
-export async function createPhoneAction(_previousState: ActionState, formData: FormData): Promise<ActionState> {
+async function requireAdmin(formData: FormData): Promise<
+  | {
+      ok: true;
+      supabase: NonNullable<ReturnType<typeof getSupabaseServiceClient>>;
+    }
+  | {
+      ok: false;
+      message: string;
+    }
+> {
   const supabase = getSupabaseServiceClient();
 
   if (!supabase) {
     return {
       ok: false,
-      message: "Supabase ainda nao esta configurado. Preencha .env.local para salvar no banco."
+      message: "Supabase ainda nao esta configurado."
     };
   }
 
@@ -57,8 +66,31 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     };
   }
 
+  return {
+    ok: true,
+    supabase
+  };
+}
+
+function revalidatePhonePages(slug?: string) {
+  revalidatePath("/");
+  revalidatePath("/celulares");
+  revalidatePath("/admin");
+  if (slug) {
+    revalidatePath(`/celulares/${slug}`);
+  }
+}
+
+export async function createPhoneAction(_previousState: ActionState, formData: FormData): Promise<ActionState> {
+  const admin = await requireAdmin(formData);
+
+  if (!admin.ok) {
+    return admin;
+  }
+
   const name = textValue(formData, "name");
   const slug = textValue(formData, "slug");
+  const phoneId = textValue(formData, "phone_id");
 
   if (!name || !slug) {
     return {
@@ -103,7 +135,9 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     verdict: textValue(formData, "verdict")
   };
 
-  const { error } = await supabase.from("phones").upsert(payload, { onConflict: "slug" });
+  const { error } = phoneId
+    ? await admin.supabase.from("phones").update(payload).eq("id", phoneId)
+    : await admin.supabase.from("phones").upsert(payload, { onConflict: "slug" });
 
   if (error) {
     return {
@@ -112,12 +146,155 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     };
   }
 
-  revalidatePath("/");
-  revalidatePath("/celulares");
-  revalidatePath(`/celulares/${slug}`);
+  revalidatePhonePages(slug);
 
   return {
     ok: true,
     message: "Celular salvo com sucesso."
+  };
+}
+
+export async function deletePhoneAction(_previousState: ActionState, formData: FormData): Promise<ActionState> {
+  const admin = await requireAdmin(formData);
+
+  if (!admin.ok) {
+    return admin;
+  }
+
+  const phoneId = textValue(formData, "phone_id");
+  const slug = textValue(formData, "slug");
+
+  if (!phoneId) {
+    return {
+      ok: false,
+      message: "Selecione um celular para excluir."
+    };
+  }
+
+  const { error } = await admin.supabase.from("phones").delete().eq("id", phoneId);
+
+  if (error) {
+    return {
+      ok: false,
+      message: error.message
+    };
+  }
+
+  revalidatePhonePages(slug);
+
+  return {
+    ok: true,
+    message: "Celular excluido."
+  };
+}
+
+export async function saveOfferAction(_previousState: ActionState, formData: FormData): Promise<ActionState> {
+  const admin = await requireAdmin(formData);
+
+  if (!admin.ok) {
+    return admin;
+  }
+
+  const phoneId = textValue(formData, "phone_id");
+  const phoneSlug = textValue(formData, "phone_slug");
+  const store = textValue(formData, "store");
+  const price = numberValue(formData, "price");
+  const url = textValue(formData, "url");
+
+  if (!phoneId || !store || !price || !url) {
+    return {
+      ok: false,
+      message: "Preencha loja, preco e link da oferta."
+    };
+  }
+
+  const { error } = await admin.supabase.from("phone_prices").insert({
+    phone_id: phoneId,
+    store,
+    price,
+    url
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      message: error.message
+    };
+  }
+
+  const { data: bestOffer } = await admin.supabase
+    .from("phone_prices")
+    .select("price,url")
+    .eq("phone_id", phoneId)
+    .order("price", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (bestOffer) {
+    await admin.supabase
+      .from("phones")
+      .update({
+        best_price: Number(bestOffer.price),
+        affiliate_url: String(bestOffer.url)
+      })
+      .eq("id", phoneId);
+  }
+
+  revalidatePhonePages(phoneSlug);
+
+  return {
+    ok: true,
+    message: "Oferta adicionada."
+  };
+}
+
+export async function deleteOfferAction(_previousState: ActionState, formData: FormData): Promise<ActionState> {
+  const admin = await requireAdmin(formData);
+
+  if (!admin.ok) {
+    return admin;
+  }
+
+  const offerId = textValue(formData, "offer_id");
+  const phoneId = textValue(formData, "phone_id");
+  const phoneSlug = textValue(formData, "phone_slug");
+
+  if (!offerId || !phoneId) {
+    return {
+      ok: false,
+      message: "Selecione uma oferta para excluir."
+    };
+  }
+
+  const { error } = await admin.supabase.from("phone_prices").delete().eq("id", offerId);
+
+  if (error) {
+    return {
+      ok: false,
+      message: error.message
+    };
+  }
+
+  const { data: bestOffer } = await admin.supabase
+    .from("phone_prices")
+    .select("price,url")
+    .eq("phone_id", phoneId)
+    .order("price", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  await admin.supabase
+    .from("phones")
+    .update({
+      best_price: bestOffer ? Number(bestOffer.price) : 0,
+      affiliate_url: bestOffer ? String(bestOffer.url) : ""
+    })
+    .eq("id", phoneId);
+
+  revalidatePhonePages(phoneSlug);
+
+  return {
+    ok: true,
+    message: "Oferta excluida."
   };
 }
