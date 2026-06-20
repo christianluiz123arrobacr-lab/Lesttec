@@ -489,6 +489,32 @@ textarea {
   gap: 24px;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.stat-card strong {
+  font-size: 34px;
+  color: var(--primary);
+}
+
+.stat-card span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .form-card {
   padding: 22px;
   border-radius: 18px;
@@ -533,6 +559,19 @@ textarea {
   resize: vertical;
 }
 
+.checkbox-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #33405f;
+  font-weight: 800;
+}
+
+.checkbox-line input {
+  width: 18px;
+  height: 18px;
+}
+
 .notice {
   padding: 14px;
   border-radius: 14px;
@@ -565,6 +604,10 @@ textarea {
 
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 
