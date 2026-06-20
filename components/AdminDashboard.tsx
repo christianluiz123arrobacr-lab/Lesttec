@@ -23,9 +23,10 @@ export function AdminDashboard() {
       setState("forbidden");
       return;
     }
+    const client = supabase;
 
     async function loadAdmin() {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await client.auth.getSession();
       const session = sessionData.session;
 
       if (!session) {
@@ -36,7 +37,7 @@ export function AdminDashboard() {
       setAccessToken(session.access_token);
       setEmail(session.user.email ?? "");
 
-      const { data } = await supabase.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
+      const { data } = await client.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
 
       if (data?.role !== "admin") {
         setState("forbidden");
@@ -44,9 +45,9 @@ export function AdminDashboard() {
       }
 
       const [{ count: phoneCount }, { count: userCount }, { count: offerUserCount }] = await Promise.all([
-        supabase.from("phones").select("id", { count: "exact", head: true }),
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
-        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("wants_offers", true)
+        client.from("phones").select("id", { count: "exact", head: true }),
+        client.from("profiles").select("id", { count: "exact", head: true }),
+        client.from("profiles").select("id", { count: "exact", head: true }).eq("wants_offers", true)
       ]);
 
       setStats({
