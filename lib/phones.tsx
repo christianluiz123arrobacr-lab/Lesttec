@@ -2,7 +2,7 @@ import { phones as mockPhones, prices as mockPrices } from "./mock-data";
 import { getSupabaseBrowserClient } from "./supabase";
 import type { Phone, PhonePrice } from "./types";
 
-function mapPhone(row: Record<string, unknown>): Phone {
+export function mapPhone(row: Record<string, unknown>): Phone {
   return {
     id: String(row.id),
     slug: String(row.slug),
@@ -41,7 +41,7 @@ function mapPhone(row: Record<string, unknown>): Phone {
   };
 }
 
-function mapPrice(row: Record<string, unknown>): PhonePrice {
+export function mapPrice(row: Record<string, unknown>): PhonePrice {
   return {
     id: String(row.id),
     phoneId: String(row.phone_id),
