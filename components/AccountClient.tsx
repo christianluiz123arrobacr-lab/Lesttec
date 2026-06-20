@@ -175,7 +175,13 @@ export function AccountClient() {
         <div className="section-header">
           <div>
             <h2>{userId ? "Minha conta" : mode === "login" ? "Entrar" : "Criar conta"}</h2>
-            <p className="section-subtitle">Use seus dados para receber ofertas e alertas melhores.</p>
+            <p className="section-subtitle">
+              {userId
+                ? "Atualize seus dados para receber ofertas melhores."
+                : mode === "login"
+                  ? "Entre com e-mail e senha."
+                  : "Crie sua conta para receber ofertas do seu jeito."}
+            </p>
           </div>
         </div>
 
@@ -190,46 +196,51 @@ export function AccountClient() {
               <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required />
             </div>
           ) : null}
-          <div className="field">
-            <label>Nome</label>
-            <input value={profile.fullName} onChange={(event) => updateProfileField("fullName", event.target.value)} />
-          </div>
-          <div className="field">
-            <label>WhatsApp</label>
-            <input value={profile.phone} onChange={(event) => updateProfileField("phone", event.target.value)} />
-          </div>
-          <div className="field">
-            <label>Cidade</label>
-            <input value={profile.city} onChange={(event) => updateProfileField("city", event.target.value)} />
-          </div>
-          <div className="field">
-            <label>Estado</label>
-            <input value={profile.state} onChange={(event) => updateProfileField("state", event.target.value)} />
-          </div>
-          <div className="field">
-            <label>Orcamento minimo</label>
-            <input value={profile.budgetMin || ""} onChange={(event) => updateProfileField("budgetMin", Number(event.target.value))} type="number" />
-          </div>
-          <div className="field">
-            <label>Orcamento maximo</label>
-            <input value={profile.budgetMax || ""} onChange={(event) => updateProfileField("budgetMax", Number(event.target.value))} type="number" />
-          </div>
-          <div className="field full">
-            <label>Marcas de interesse</label>
-            <input
-              value={profile.preferredBrands.join(", ")}
-              onChange={(event) => updateProfileField("preferredBrands", event.target.value.split(",").map((brand) => brand.trim()).filter(Boolean))}
-              placeholder="Samsung, Xiaomi, Apple"
-            />
-          </div>
-          <label className="field full checkbox-line">
-            <input
-              checked={profile.wantsOffers}
-              onChange={(event) => updateProfileField("wantsOffers", event.target.checked)}
-              type="checkbox"
-            />
-            Quero receber ofertas e alertas de preco.
-          </label>
+
+          {mode === "register" || userId ? (
+            <>
+              <div className="field">
+                <label>Nome</label>
+                <input value={profile.fullName} onChange={(event) => updateProfileField("fullName", event.target.value)} required={mode === "register"} />
+              </div>
+              <div className="field">
+                <label>WhatsApp</label>
+                <input value={profile.phone} onChange={(event) => updateProfileField("phone", event.target.value)} placeholder="(66) 99999-9999" />
+              </div>
+              <div className="field">
+                <label>Cidade</label>
+                <input value={profile.city} onChange={(event) => updateProfileField("city", event.target.value)} />
+              </div>
+              <div className="field">
+                <label>Estado</label>
+                <input value={profile.state} onChange={(event) => updateProfileField("state", event.target.value)} placeholder="MT" />
+              </div>
+              <div className="field">
+                <label>Orcamento minimo</label>
+                <input value={profile.budgetMin || ""} onChange={(event) => updateProfileField("budgetMin", Number(event.target.value))} type="number" />
+              </div>
+              <div className="field">
+                <label>Orcamento maximo</label>
+                <input value={profile.budgetMax || ""} onChange={(event) => updateProfileField("budgetMax", Number(event.target.value))} type="number" />
+              </div>
+              <div className="field full">
+                <label>Marcas de interesse</label>
+                <input
+                  value={profile.preferredBrands.join(", ")}
+                  onChange={(event) => updateProfileField("preferredBrands", event.target.value.split(",").map((brand) => brand.trim()).filter(Boolean))}
+                  placeholder="Samsung, Xiaomi, Apple"
+                />
+              </div>
+              <label className="field full checkbox-line">
+                <input
+                  checked={profile.wantsOffers}
+                  onChange={(event) => updateProfileField("wantsOffers", event.target.checked)}
+                  type="checkbox"
+                />
+                Quero receber ofertas e alertas de preco.
+              </label>
+            </>
+          ) : null}
         </div>
 
         <div style={{ display: "flex", gap: 12, marginTop: 18, flexWrap: "wrap" }}>
