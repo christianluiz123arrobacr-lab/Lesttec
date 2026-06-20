@@ -8,16 +8,13 @@ const initialState = {
   message: ""
 };
 
-export function AdminPhoneForm() {
+export function AdminPhoneForm({ accessToken }: { accessToken: string }) {
   const [state, action, pending] = useActionState(createPhoneAction, initialState);
 
   return (
     <form className="form-card" action={action}>
+      <input name="access_token" type="hidden" value={accessToken} />
       <div className="form-grid">
-        <div className="field full">
-          <label>Senha admin</label>
-          <input name="admin_password" type="password" placeholder="Definida em ADMIN_PASSWORD" required />
-        </div>
         <div className="field">
           <label>Nome</label>
           <input name="name" placeholder="POCO X8 Pro" required />
