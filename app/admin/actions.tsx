@@ -16,6 +16,10 @@ function textValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function booleanValue(formData: FormData, key: string) {
+  return formData.get(key) === "on";
+}
+
 async function requireAdmin(formData: FormData): Promise<
   | {
       ok: true;
@@ -110,13 +114,21 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     best_price: numberValue(formData, "best_price"),
     affiliate_url: textValue(formData, "affiliate_url"),
     chipset: textValue(formData, "chipset"),
+    gpu: textValue(formData, "gpu"),
     ram_gb: numberValue(formData, "ram_gb"),
+    ram_type: textValue(formData, "ram_type"),
     storage_gb: numberValue(formData, "storage_gb"),
+    storage_type: textValue(formData, "storage_type"),
     display: textValue(formData, "display"),
+    screen_type: textValue(formData, "screen_type"),
+    screen_resolution: textValue(formData, "screen_resolution"),
     display_hz: numberValue(formData, "display_hz"),
     battery_mah: numberValue(formData, "battery_mah"),
     charging_w: numberValue(formData, "charging_w"),
     main_camera_mp: numberValue(formData, "main_camera_mp"),
+    ultrawide_camera_mp: numberValue(formData, "ultrawide_camera_mp"),
+    telephoto_camera_mp: numberValue(formData, "telephoto_camera_mp"),
+    selfie_camera_mp: numberValue(formData, "selfie_camera_mp"),
     video: textValue(formData, "video"),
     os: textValue(formData, "os"),
     antutu_score: numberValue(formData, "antutu_score"),
@@ -126,6 +138,21 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     thickness_mm: numberValue(formData, "thickness_mm"),
     weight_g: numberValue(formData, "weight_g"),
     water_resistance: textValue(formData, "water_resistance"),
+    protection: textValue(formData, "protection"),
+    nfc: booleanValue(formData, "nfc"),
+    five_g: booleanValue(formData, "five_g"),
+    dual_sim: booleanValue(formData, "dual_sim"),
+    esim: booleanValue(formData, "esim"),
+    memory_card: booleanValue(formData, "memory_card"),
+    stereo_speakers: booleanValue(formData, "stereo_speakers"),
+    audio_jack: booleanValue(formData, "audio_jack"),
+    usb_type: textValue(formData, "usb_type"),
+    wifi: textValue(formData, "wifi"),
+    bluetooth: textValue(formData, "bluetooth"),
+    gps: textValue(formData, "gps"),
+    network_bands: textValue(formData, "network_bands"),
+    pros: textValue(formData, "pros"),
+    cons: textValue(formData, "cons"),
     score_performance: numberValue(formData, "score_performance"),
     score_camera: numberValue(formData, "score_camera"),
     score_battery: numberValue(formData, "score_battery"),
