@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { AdminOnlyLink } from "@/components/AdminOnlyLink";
 import { PhoneCard } from "@/components/PhoneCard";
 import { RankingList } from "@/components/RankingList";
 import { ScoreRows } from "@/components/ScoreRows";
@@ -57,9 +58,7 @@ export default async function HomePage() {
                 <h2>Melhores escolhas agora</h2>
                 <p className="section-subtitle">Base inicial com dados mockados, pronta para receber Supabase.</p>
               </div>
-              <Link className="button ghost" href="/admin">
-                Cadastrar celular
-              </Link>
+              <AdminOnlyLink className="button ghost" href="/admin" label="Cadastrar celular" />
             </div>
             <div className="grid">
               {byValue.map((phone) => (
