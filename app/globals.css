@@ -427,6 +427,20 @@ textarea {
   overflow-x: auto;
 }
 
+.size-phone {
+  display: grid;
+  gap: 12px;
+  flex: 0 0 220px;
+}
+
+.size-phone-drawing {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 10px;
+  min-height: 210px;
+}
+
 .phone-outline {
   display: grid;
   place-items: center;
@@ -437,6 +451,9 @@ textarea {
   color: white;
   box-shadow: var(--shadow);
   position: relative;
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
 }
 
 .phone-outline::before {
@@ -447,6 +464,14 @@ textarea {
   height: 5px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.24);
+}
+
+.phone-side-outline {
+  flex: 0 0 auto;
+  border: 2px solid #111827;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #4b5563, #111827);
+  box-shadow: var(--shadow);
 }
 
 .compare-grid {
@@ -688,6 +713,56 @@ textarea {
   height: 18px;
 }
 
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+}
+
+.clean-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.admin-user-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-copy-box {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-copy-box textarea {
+  min-height: 120px;
+  border: 1px solid #ffe0a8;
+  border-radius: 12px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.admin-user-item {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid #ffe0a8;
+}
+
+.admin-user-item span {
+  font-size: 13px;
+}
+
 .notice {
   padding: 14px;
   border-radius: 14px;
@@ -736,7 +811,8 @@ textarea {
 
   .grid,
   .spec-grid,
-  .form-grid {
+  .form-grid,
+  .checkbox-grid {
     grid-template-columns: 1fr;
   }
 
