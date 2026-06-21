@@ -63,6 +63,10 @@ export function AdminPhoneForm({ accessToken, phone }: { accessToken: string; ph
           <input name="chipset" defaultValue={phone?.chipset ?? ""} placeholder="Dimensity 8400 Ultra" />
         </div>
         <div className="field">
+          <label>GPU</label>
+          <input name="gpu" defaultValue={phone?.gpu ?? ""} placeholder="Mali-G720 / Adreno..." />
+        </div>
+        <div className="field">
           <label>Sistema</label>
           <input name="os" defaultValue={phone?.os ?? ""} placeholder="Android 16 / HyperOS" />
         </div>
@@ -71,12 +75,28 @@ export function AdminPhoneForm({ accessToken, phone }: { accessToken: string; ph
           <input name="ram_gb" type="number" defaultValue={phone?.ramGb ?? ""} placeholder="12" />
         </div>
         <div className="field">
+          <label>Tipo de RAM</label>
+          <input name="ram_type" defaultValue={phone?.ramType ?? ""} placeholder="LPDDR5X" />
+        </div>
+        <div className="field">
           <label>Armazenamento GB</label>
           <input name="storage_gb" type="number" defaultValue={phone?.storageGb ?? ""} placeholder="512" />
         </div>
         <div className="field">
+          <label>Tipo de armazenamento</label>
+          <input name="storage_type" defaultValue={phone?.storageType ?? ""} placeholder="UFS 4.0" />
+        </div>
+        <div className="field">
           <label>Tela</label>
           <input name="display" defaultValue={phone?.display ?? ""} placeholder="6.67 AMOLED, 1.5K" />
+        </div>
+        <div className="field">
+          <label>Tipo de tela</label>
+          <input name="screen_type" defaultValue={phone?.screenType ?? ""} placeholder="AMOLED / LTPO OLED" />
+        </div>
+        <div className="field">
+          <label>Resolucao da tela</label>
+          <input name="screen_resolution" defaultValue={phone?.screenResolution ?? ""} placeholder="2712 x 1220 pixels" />
         </div>
         <div className="field">
           <label>Hz</label>
@@ -93,6 +113,18 @@ export function AdminPhoneForm({ accessToken, phone }: { accessToken: string; ph
         <div className="field">
           <label>Camera principal MP</label>
           <input name="main_camera_mp" type="number" defaultValue={phone?.mainCameraMp ?? ""} placeholder="50" />
+        </div>
+        <div className="field">
+          <label>Camera ultrawide MP</label>
+          <input name="ultrawide_camera_mp" type="number" defaultValue={phone?.ultrawideCameraMp ?? ""} placeholder="8" />
+        </div>
+        <div className="field">
+          <label>Camera telefoto MP</label>
+          <input name="telephoto_camera_mp" type="number" defaultValue={phone?.telephotoCameraMp ?? ""} placeholder="50" />
+        </div>
+        <div className="field">
+          <label>Camera frontal MP</label>
+          <input name="selfie_camera_mp" type="number" defaultValue={phone?.selfieCameraMp ?? ""} placeholder="20" />
         </div>
         <div className="field">
           <label>Video</label>
@@ -131,6 +163,56 @@ export function AdminPhoneForm({ accessToken, phone }: { accessToken: string; ph
         <div className="field">
           <label>Resistencia</label>
           <input name="water_resistance" defaultValue={phone?.waterResistance ?? ""} placeholder="IP68" />
+        </div>
+        <div className="field">
+          <label>Protecao da tela</label>
+          <input name="protection" defaultValue={phone?.protection ?? ""} placeholder="Gorilla Glass Victus" />
+        </div>
+        <div className="field">
+          <label>USB</label>
+          <input name="usb_type" defaultValue={phone?.usbType ?? ""} placeholder="USB-C 2.0" />
+        </div>
+        <div className="field">
+          <label>Wi-Fi</label>
+          <input name="wifi" defaultValue={phone?.wifi ?? ""} placeholder="Wi-Fi 6 / 7" />
+        </div>
+        <div className="field">
+          <label>Bluetooth</label>
+          <input name="bluetooth" defaultValue={phone?.bluetooth ?? ""} placeholder="5.4" />
+        </div>
+        <div className="field">
+          <label>GPS</label>
+          <input name="gps" defaultValue={phone?.gps ?? ""} placeholder="GPS, GLONASS, Galileo" />
+        </div>
+        <div className="field full">
+          <label>Bandas e redes</label>
+          <textarea name="network_bands" defaultValue={phone?.networkBands ?? ""} placeholder="5G: n1, n3, n7... / 4G: B1, B3..." />
+        </div>
+        <div className="field full">
+          <label>Recursos</label>
+          <div className="checkbox-grid">
+            <label className="checkbox-line">
+              <input name="five_g" type="checkbox" defaultChecked={phone?.fiveG ?? true} /> 5G
+            </label>
+            <label className="checkbox-line">
+              <input name="nfc" type="checkbox" defaultChecked={phone?.nfc ?? true} /> NFC
+            </label>
+            <label className="checkbox-line">
+              <input name="dual_sim" type="checkbox" defaultChecked={phone?.dualSim ?? true} /> Dual SIM
+            </label>
+            <label className="checkbox-line">
+              <input name="esim" type="checkbox" defaultChecked={phone?.esim ?? false} /> eSIM
+            </label>
+            <label className="checkbox-line">
+              <input name="memory_card" type="checkbox" defaultChecked={phone?.memoryCard ?? false} /> Cartao de memoria
+            </label>
+            <label className="checkbox-line">
+              <input name="stereo_speakers" type="checkbox" defaultChecked={phone?.stereoSpeakers ?? true} /> Som stereo
+            </label>
+            <label className="checkbox-line">
+              <input name="audio_jack" type="checkbox" defaultChecked={phone?.audioJack ?? false} /> Entrada P2
+            </label>
+          </div>
         </div>
         <div className="field">
           <label>Lancamento</label>
@@ -211,6 +293,14 @@ export function AdminPhoneForm({ accessToken, phone }: { accessToken: string; ph
         <div className="field full">
           <label>Veredito</label>
           <textarea name="verdict" defaultValue={phone?.verdict ?? ""} placeholder="Vale a pena ate R$ 2700..." />
+        </div>
+        <div className="field full">
+          <label>Pros</label>
+          <textarea name="pros" defaultValue={phone?.pros ?? ""} placeholder="Um ponto por linha: desempenho forte, tela boa..." />
+        </div>
+        <div className="field full">
+          <label>Contras</label>
+          <textarea name="cons" defaultValue={phone?.cons ?? ""} placeholder="Um ponto por linha: sem carregador, esquenta..." />
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 18 }}>
