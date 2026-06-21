@@ -1,5 +1,31 @@
 import type { Phone, PhonePrice } from "./types";
 
+const extraSpecs = {
+  gpu: "",
+  ramType: "",
+  storageType: "",
+  screenType: "",
+  screenResolution: "",
+  ultrawideCameraMp: 0,
+  telephotoCameraMp: 0,
+  selfieCameraMp: 0,
+  protection: "",
+  nfc: true,
+  fiveG: true,
+  dualSim: true,
+  esim: false,
+  memoryCard: false,
+  stereoSpeakers: true,
+  audioJack: false,
+  usbType: "USB-C",
+  wifi: "",
+  bluetooth: "",
+  gps: "Sim",
+  networkBands: "",
+  pros: "",
+  cons: ""
+};
+
 export const phones: Phone[] = [
   {
     id: "poco-x8-pro",
@@ -29,6 +55,7 @@ export const phones: Phone[] = [
     thicknessMm: 8.1,
     weightG: 218,
     waterResistance: "IP68",
+    ...extraSpecs,
     scorePerformance: 9.3,
     scoreCamera: 7.7,
     scoreBattery: 8.5,
@@ -65,6 +92,7 @@ export const phones: Phone[] = [
     thicknessMm: 7.4,
     weightG: 198,
     waterResistance: "IP67",
+    ...extraSpecs,
     scorePerformance: 7.5,
     scoreCamera: 8.2,
     scoreBattery: 8.2,
@@ -101,6 +129,7 @@ export const phones: Phone[] = [
     thicknessMm: 8.6,
     weightG: 214,
     waterResistance: "IP68",
+    ...extraSpecs,
     scorePerformance: 9.9,
     scoreCamera: 8.8,
     scoreBattery: 9.0,
@@ -137,6 +166,7 @@ export const phones: Phone[] = [
     thicknessMm: 7.8,
     weightG: 178,
     waterResistance: "IP68",
+    ...extraSpecs,
     scorePerformance: 9.6,
     scoreCamera: 9.1,
     scoreBattery: 7.8,
