@@ -2,42 +2,79 @@ import { phones as mockPhones, prices as mockPrices } from "./mock-data";
 import { getSupabaseBrowserClient } from "./supabase";
 import type { Phone, PhonePrice } from "./types";
 
+function stringValue(row: Record<string, unknown>, key: string) {
+  const value = row[key];
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function numberValue(row: Record<string, unknown>, key: string) {
+  const value = Number(row[key] ?? 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function booleanValue(row: Record<string, unknown>, key: string) {
+  return row[key] === true;
+}
+
 export function mapPhone(row: Record<string, unknown>): Phone {
   return {
-    id: String(row.id),
-    slug: String(row.slug),
-    name: String(row.name),
-    brand: String(row.brand),
-    imageUrl: String(row.image_url),
-    launchStatus: row.launch_status as Phone["launchStatus"],
-    releaseDate: String(row.release_date),
-    price: Number(row.price),
-    bestPrice: Number(row.best_price),
-    affiliateUrl: String(row.affiliate_url),
-    chipset: String(row.chipset),
-    ramGb: Number(row.ram_gb),
-    storageGb: Number(row.storage_gb),
-    display: String(row.display),
-    displayHz: Number(row.display_hz),
-    batteryMah: Number(row.battery_mah),
-    chargingW: Number(row.charging_w),
-    mainCameraMp: Number(row.main_camera_mp),
-    video: String(row.video),
-    os: String(row.os),
-    antutuScore: Number(row.antutu_score),
-    antutuVersion: String(row.antutu_version),
-    heightMm: Number(row.height_mm),
-    widthMm: Number(row.width_mm),
-    thicknessMm: Number(row.thickness_mm),
-    weightG: Number(row.weight_g),
-    waterResistance: String(row.water_resistance),
-    scorePerformance: Number(row.score_performance),
-    scoreCamera: Number(row.score_camera),
-    scoreBattery: Number(row.score_battery),
-    scoreDisplay: Number(row.score_display),
-    scoreBuild: Number(row.score_build),
-    scoreValue: Number(row.score_value),
-    verdict: String(row.verdict)
+    id: stringValue(row, "id"),
+    slug: stringValue(row, "slug"),
+    name: stringValue(row, "name"),
+    brand: stringValue(row, "brand"),
+    imageUrl: stringValue(row, "image_url"),
+    launchStatus: (stringValue(row, "launch_status") || "available") as Phone["launchStatus"],
+    releaseDate: stringValue(row, "release_date"),
+    price: numberValue(row, "price"),
+    bestPrice: numberValue(row, "best_price"),
+    affiliateUrl: stringValue(row, "affiliate_url"),
+    chipset: stringValue(row, "chipset"),
+    gpu: stringValue(row, "gpu"),
+    ramGb: numberValue(row, "ram_gb"),
+    ramType: stringValue(row, "ram_type"),
+    storageGb: numberValue(row, "storage_gb"),
+    storageType: stringValue(row, "storage_type"),
+    display: stringValue(row, "display"),
+    screenType: stringValue(row, "screen_type"),
+    screenResolution: stringValue(row, "screen_resolution"),
+    displayHz: numberValue(row, "display_hz"),
+    batteryMah: numberValue(row, "battery_mah"),
+    chargingW: numberValue(row, "charging_w"),
+    mainCameraMp: numberValue(row, "main_camera_mp"),
+    ultrawideCameraMp: numberValue(row, "ultrawide_camera_mp"),
+    telephotoCameraMp: numberValue(row, "telephoto_camera_mp"),
+    selfieCameraMp: numberValue(row, "selfie_camera_mp"),
+    video: stringValue(row, "video"),
+    os: stringValue(row, "os"),
+    antutuScore: numberValue(row, "antutu_score"),
+    antutuVersion: stringValue(row, "antutu_version"),
+    heightMm: numberValue(row, "height_mm"),
+    widthMm: numberValue(row, "width_mm"),
+    thicknessMm: numberValue(row, "thickness_mm"),
+    weightG: numberValue(row, "weight_g"),
+    waterResistance: stringValue(row, "water_resistance"),
+    protection: stringValue(row, "protection"),
+    nfc: booleanValue(row, "nfc"),
+    fiveG: booleanValue(row, "five_g"),
+    dualSim: booleanValue(row, "dual_sim"),
+    esim: booleanValue(row, "esim"),
+    memoryCard: booleanValue(row, "memory_card"),
+    stereoSpeakers: booleanValue(row, "stereo_speakers"),
+    audioJack: booleanValue(row, "audio_jack"),
+    usbType: stringValue(row, "usb_type"),
+    wifi: stringValue(row, "wifi"),
+    bluetooth: stringValue(row, "bluetooth"),
+    gps: stringValue(row, "gps"),
+    networkBands: stringValue(row, "network_bands"),
+    pros: stringValue(row, "pros"),
+    cons: stringValue(row, "cons"),
+    scorePerformance: numberValue(row, "score_performance"),
+    scoreCamera: numberValue(row, "score_camera"),
+    scoreBattery: numberValue(row, "score_battery"),
+    scoreDisplay: numberValue(row, "score_display"),
+    scoreBuild: numberValue(row, "score_build"),
+    scoreValue: numberValue(row, "score_value"),
+    verdict: stringValue(row, "verdict")
   };
 }
 
