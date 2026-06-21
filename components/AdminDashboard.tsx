@@ -13,6 +13,18 @@ type AdminStats = {
   users: number;
   offerUsers: number;
 };
+type AdminProfile = {
+  id: string;
+  role: string;
+  fullName: string;
+  phone: string;
+  city: string;
+  state: string;
+  budgetMin: number;
+  budgetMax: number;
+  preferredBrands: string[];
+  wantsOffers: boolean;
+};
 
 const actionInitialState = {
   ok: false,
@@ -207,6 +219,14 @@ export function AdminDashboard() {
   const [accessToken, setAccessToken] = useState("");
   const [email, setEmail] = useState("");
   const [stats, setStats] = useState<AdminStats>({ phones: 0, users: 0, offerUsers: 0 });
+  const [profiles, setProfiles] = useState<AdminProfile[]>([]);
+  const offerContacts = profiles
+    .filter((profile) => profile.wantsOffers)
+    .map(
+      (profile) =>
+        `${profile.fullName || "Sem nome"} | ${profile.phone || "Sem WhatsApp"} | ${profile.city || "-"}-${profile.state || "-"} | R$ ${profile.budgetMin} a R$ ${profile.budgetMax} | ${profile.preferredBrands.join(", ") || "Sem marcas"}`
+    )
+    .join("\n");
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -235,10 +255,15 @@ export function AdminDashboard() {
         return;
       }
 
-      const [{ count: phoneCount }, { count: userCount }, { count: offerUserCount }] = await Promise.all([
+      const [{ count: phoneCount }, { count: userCount }, { count: offerUserCount }, { data: profileRows }] = await Promise.all([
         client.from("phones").select("id", { count: "exact", head: true }),
         client.from("profiles").select("id", { count: "exact", head: true }),
-        client.from("profiles").select("id", { count: "exact", head: true }).eq("wants_offers", true)
+        client.from("profiles").select("id", { count: "exact", head: true }).eq("wants_offers", true),
+        client
+          .from("profiles")
+          .select("id,role,full_name,phone,city,state,budget_min,budget_max,preferred_brands,wants_offers")
+          .order("created_at", { ascending: false })
+          .limit(30)
       ]);
 
       setStats({
@@ -246,6 +271,20 @@ export function AdminDashboard() {
         users: userCount ?? 0,
         offerUsers: offerUserCount ?? 0
       });
+      setProfiles(
+        (profileRows ?? []).map((profile) => ({
+          id: String(profile.id),
+          role: String(profile.role),
+          fullName: String(profile.full_name ?? ""),
+          phone: String(profile.phone ?? ""),
+          city: String(profile.city ?? ""),
+          state: String(profile.state ?? ""),
+          budgetMin: Number(profile.budget_min ?? 0),
+          budgetMax: Number(profile.budget_max ?? 0),
+          preferredBrands: Array.isArray(profile.preferred_brands) ? profile.preferred_brands.map(String) : [],
+          wantsOffers: profile.wants_offers === true
+        }))
+      );
       setState("admin");
     }
 
@@ -303,6 +342,28 @@ export function AdminDashboard() {
           <h3>Painel liberado</h3>
           <p>Logado como admin: {email}</p>
           <p>Por aqui voce cadastra, edita e exclui celulares. Tambem da para adicionar ofertas por loja com link afiliado.</p>
+          <h3>Usuarios recentes</h3>
+          <label className="admin-copy-box">
+            <strong>Contatos para ofertas</strong>
+            <textarea readOnly value={offerContacts} />
+          </label>
+          <div className="admin-user-list">
+            {profiles.map((profile) => (
+              <div className="admin-user-item" key={profile.id}>
+                <strong>{profile.fullName || "Sem nome"}</strong>
+                <span>{profile.phone || "Sem WhatsApp"}</span>
+                <span>
+                  {profile.city || "-"} / {profile.state || "-"}
+                </span>
+                <span>
+                  R$ {profile.budgetMin.toLocaleString("pt-BR")} ate R$ {profile.budgetMax.toLocaleString("pt-BR")}
+                </span>
+                <span>{profile.preferredBrands.join(", ") || "Sem marcas"}</span>
+                <span>{profile.wantsOffers ? "Aceita ofertas" : "Nao aceita ofertas"}</span>
+              </div>
+            ))}
+            {!profiles.length ? <p>Nenhum usuario encontrado.</p> : null}
+          </div>
         </aside>
       </div>
     </div>
