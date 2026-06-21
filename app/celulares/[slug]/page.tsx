@@ -6,6 +6,21 @@ import { ScoreRows } from "@/components/ScoreRows";
 import { getPhoneBySlug, getPhones, getPricesByPhoneId } from "@/lib/phones";
 import { finalScore, formatCurrency, formatNumber } from "@/lib/scoring";
 
+function yesNo(value: boolean) {
+  return value ? "Sim" : "Nao";
+}
+
+function textOrDash(value: string) {
+  return value.trim() ? value : "-";
+}
+
+function listLines(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export async function generateStaticParams() {
   const phones = await getPhones();
   return phones.map((phone) => ({ slug: phone.slug }));
@@ -19,6 +34,8 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
   const phones = await getPhones();
   const prices = await getPricesByPhoneId(phone.id);
   const similar = phones.filter((item) => item.id !== phone.id).slice(0, 2);
+  const pros = listLines(phone.pros);
+  const cons = listLines(phone.cons);
 
   return (
     <>
@@ -34,11 +51,11 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
               <div className="spec-grid">
                 <div className="spec-tile">
                   <strong>{phone.ramGb} GB</strong>
-                  RAM
+                  RAM {phone.ramType}
                 </div>
                 <div className="spec-tile">
                   <strong>{phone.storageGb} GB</strong>
-                  Armazenamento
+                  {phone.storageType || "Armazenamento"}
                 </div>
                 <div className="spec-tile">
                   <strong>{phone.batteryMah} mAh</strong>
@@ -46,7 +63,11 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 </div>
                 <div className="spec-tile">
                   <strong>{phone.displayHz} Hz</strong>
-                  Tela
+                  {phone.screenType || "Tela"}
+                </div>
+                <div className="spec-tile">
+                  <strong>{phone.mainCameraMp} MP</strong>
+                  Camera principal
                 </div>
                 <div className="spec-tile">
                   <strong>{formatNumber(phone.antutuScore)}</strong>
@@ -86,17 +107,52 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
             </div>
             <div className="rank-list">
               <h3>Ofertas cadastradas</h3>
-              {prices.map((price) => (
-                <a className="rank-item" href={price.url} key={price.id}>
-                  <strong>{price.store}</strong>
-                  <span />
-                  <span className="muted">Atualizado em {price.updatedAt}</span>
-                  <strong className="price">{formatCurrency(price.price)}</strong>
-                </a>
-              ))}
+              {prices.length ? (
+                prices.map((price) => (
+                  <a className="rank-item" href={price.url} key={price.id}>
+                    <strong>{price.store}</strong>
+                    <span />
+                    <span className="muted">Atualizado em {price.updatedAt}</span>
+                    <strong className="price">{formatCurrency(price.price)}</strong>
+                  </a>
+                ))
+              ) : (
+                <p className="muted">Nenhuma oferta cadastrada ainda.</p>
+              )}
             </div>
           </div>
         </section>
+
+        {(pros.length || cons.length) ? (
+          <section className="section">
+            <div className="shell ranking">
+              <div className="rank-list">
+                <h3>Pontos positivos</h3>
+                {pros.length ? (
+                  <ul className="clean-list">
+                    {pros.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted">Ainda nao cadastrado.</p>
+                )}
+              </div>
+              <div className="rank-list">
+                <h3>Pontos negativos</h3>
+                {cons.length ? (
+                  <ul className="clean-list">
+                    {cons.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted">Ainda nao cadastrado.</p>
+                )}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section className="section">
           <div className="shell">
@@ -123,18 +179,42 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 </tr>
                 <tr>
                   <th>Processador</th>
-                  <td>{phone.chipset}</td>
+                  <td>
+                    {phone.chipset}
+                    {phone.gpu ? ` / GPU ${phone.gpu}` : ""}
+                  </td>
                 </tr>
                 <tr>
                   <th>Tela</th>
                   <td>
                     {phone.display}, {phone.displayHz} Hz
+                    {phone.screenResolution ? `, ${phone.screenResolution}` : ""}
+                    {phone.protection ? `, ${phone.protection}` : ""}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Memoria</th>
+                  <td>
+                    {phone.ramGb} GB {textOrDash(phone.ramType)} / {phone.storageGb} GB {textOrDash(phone.storageType)}
                   </td>
                 </tr>
                 <tr>
                   <th>Camera principal</th>
                   <td>
                     {phone.mainCameraMp} MP, video {phone.video}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Cameras extras</th>
+                  <td>
+                    Ultrawide {phone.ultrawideCameraMp || 0} MP, telefoto {phone.telephotoCameraMp || 0} MP, frontal{" "}
+                    {phone.selfieCameraMp || 0} MP
+                  </td>
+                </tr>
+                <tr>
+                  <th>Bateria e carregamento</th>
+                  <td>
+                    {phone.batteryMah} mAh / {phone.chargingW} W
                   </td>
                 </tr>
                 <tr>
@@ -150,6 +230,28 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>Resistencia</th>
                   <td>{phone.waterResistance}</td>
+                </tr>
+                <tr>
+                  <th>Conectividade</th>
+                  <td>
+                    5G: {yesNo(phone.fiveG)} / NFC: {yesNo(phone.nfc)} / Wi-Fi: {textOrDash(phone.wifi)} / Bluetooth:{" "}
+                    {textOrDash(phone.bluetooth)} / GPS: {textOrDash(phone.gps)}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Chips e extras</th>
+                  <td>
+                    Dual SIM: {yesNo(phone.dualSim)} / eSIM: {yesNo(phone.esim)} / Cartao de memoria:{" "}
+                    {yesNo(phone.memoryCard)} / Som stereo: {yesNo(phone.stereoSpeakers)} / P2: {yesNo(phone.audioJack)}
+                  </td>
+                </tr>
+                <tr>
+                  <th>USB</th>
+                  <td>{textOrDash(phone.usbType)}</td>
+                </tr>
+                <tr>
+                  <th>Bandas</th>
+                  <td>{textOrDash(phone.networkBands)}</td>
                 </tr>
               </tbody>
             </table>
