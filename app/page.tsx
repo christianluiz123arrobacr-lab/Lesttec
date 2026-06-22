@@ -19,6 +19,12 @@ export default async function HomePage() {
     { label: "Com NFC", href: "/celulares?nfc=on" },
     { label: "5G", href: "/celulares?fiveG=on" }
   ];
+  const portalLinks = [
+    { title: "Ofertas do dia", text: "Compare lojas, cupom e cashback.", href: "/ofertas" },
+    { title: "Rankings por orçamento", text: "Até R$ 1000, R$ 1500 e R$ 2000.", href: "/melhores/celulares-ate-1500" },
+    { title: "Verificar frequências", text: "Bandas 4G/5G para importados.", href: "/frequencias" },
+    { title: "Como avaliamos", text: "Entenda a nota de compra.", href: "/como-avaliamos" }
+  ];
 
   return (
     <>
@@ -112,6 +118,26 @@ export default async function HomePage() {
           <div className="shell ranking">
             <RankingList title="Melhor Nota Vale a Pena" phones={byValue} mode="value" />
             <RankingList title="Menor preco cadastrado" phones={byPrice} mode="price" />
+          </div>
+        </section>
+
+        <section className="section editorial-strip">
+          <div className="shell">
+            <div className="section-header">
+              <div>
+                <h2>Ferramentas de compra</h2>
+                <p className="section-subtitle">Recursos inspirados em portais completos para comparar, economizar e escolher melhor.</p>
+              </div>
+            </div>
+            <div className="info-grid">
+              {portalLinks.map((item) => (
+                <Link className="info-card" href={item.href} key={item.href}>
+                  <span className="badge">Novo</span>
+                  <h3>{item.title}</h3>
+                  <p className="muted">{item.text}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 

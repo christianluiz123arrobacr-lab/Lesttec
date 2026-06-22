@@ -45,7 +45,10 @@ export function Header() {
         </Link>
         <nav className="nav-links" aria-label="Navegacao principal">
           <Link href="/celulares">Celulares</Link>
+          <Link href="/ofertas">Ofertas</Link>
+          <Link href="/melhores/celulares-ate-1500">Melhores</Link>
           <Link href="/comparar">Comparar</Link>
+          <Link href="/frequencias">Frequências</Link>
           {isAdmin ? <Link href="/admin">Admin</Link> : null}
           <Link href="/conta">{isLoggedIn ? "Minha conta" : "Entrar"}</Link>
         </nav>

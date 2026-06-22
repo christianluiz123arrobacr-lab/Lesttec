@@ -102,7 +102,19 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
           </div>
         </section>
 
-        <section className="section">
+        <section className="phone-action-section">
+          <div className="shell phone-action-bar">
+            <a href="#resumo">Resumo</a>
+            <a href="#ofertas">Ofertas</a>
+            <a href="#ficha">Ficha técnica</a>
+            <a href="/comparar">Comparar</a>
+            <button type="button">Quero comprar</button>
+            <button type="button">Tenho esse</button>
+            <button type="button">Alerta de preço</button>
+          </div>
+        </section>
+
+        <section className="section" id="resumo">
           <div className="shell ranking">
             <div className="rank-list">
               <h3>Pontuacao</h3>
@@ -117,7 +129,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 ]}
               />
             </div>
-            <div className="rank-list">
+            <div className="rank-list" id="ofertas">
               <h3>Ofertas cadastradas</h3>
               {prices.length ? (
                 prices.map((price) => (
@@ -184,6 +196,21 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
         ) : null}
 
         <section className="section">
+          <div className="shell price-alert-card">
+            <div>
+              <span className="badge">Alerta de preço</span>
+              <h2>Quer pagar menos no {phone.name}?</h2>
+              <p className="muted">Cadastre um preço alvo e use esta área como base para um alerta por e-mail ou WhatsApp quando a oferta baixar.</p>
+            </div>
+            <form className="price-alert-form">
+              <input placeholder="Preço desejado" type="number" />
+              <input placeholder="Seu e-mail ou WhatsApp" />
+              <button className="button" type="button">Criar alerta</button>
+            </form>
+          </div>
+        </section>
+
+        <section className="section" id="ficha">
           <div className="shell">
             <div className="section-header">
               <div>

@@ -1347,3 +1347,137 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.offer-page-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.deal-card {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: white;
+  box-shadow: var(--shadow-soft);
+}
+
+.deal-card img {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: var(--panel-soft);
+  padding: 10px;
+}
+
+.deal-card h3,
+.info-card h3 {
+  margin: 8px 0 6px;
+}
+
+.deal-card > strong {
+  color: var(--primary);
+  font-size: 24px;
+  white-space: nowrap;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.info-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 180px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: white;
+  box-shadow: var(--shadow-soft);
+}
+
+.phone-action-section {
+  position: sticky;
+  top: 76px;
+  z-index: 15;
+  background: rgba(247, 249, 254, 0.9);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(16px);
+}
+
+.phone-action-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  overflow-x: auto;
+  padding: 12px 0;
+}
+
+.phone-action-bar a,
+.phone-action-bar button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: white;
+  color: var(--text);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.phone-action-bar button:last-child {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+
+.price-alert-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+  gap: 20px;
+  align-items: center;
+  padding: 24px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 90% 12%, rgba(16, 185, 129, 0.16), transparent 34%),
+    white;
+  box-shadow: var(--shadow);
+}
+
+.price-alert-form {
+  display: grid;
+  gap: 10px;
+}
+
+.price-alert-form input {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0 14px;
+}
+
+.frequency-tool {
+  display: grid;
+  gap: 18px;
+}
+
+@media (max-width: 980px) {
+  .deal-card,
+  .price-alert-card,
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .phone-action-section {
+    top: 0;
+  }
+}
