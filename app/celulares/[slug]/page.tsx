@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
+import { PhoneEngagementPanel } from "@/components/PhoneEngagementPanel";
 import { PhoneSizeCompare } from "@/components/PhoneSizeCompare";
 import { ScoreRows } from "@/components/ScoreRows";
-import { getPhoneBySlug, getPhones, getPricesByPhoneId } from "@/lib/phones";
+import { getPhoneBySlug, getPhones, getPriceHistoryByPhoneId, getPricesByPhoneId, getReviewsByPhoneId } from "@/lib/phones";
 import { finalScore, formatCurrency, formatNumber } from "@/lib/scoring";
 
 function yesNo(value: boolean) {
@@ -45,6 +46,8 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
 
   const phones = await getPhones();
   const prices = await getPricesByPhoneId(phone.id);
+  const reviews = await getReviewsByPhoneId(phone.id);
+  const priceHistory = await getPriceHistoryByPhoneId(phone.id);
   const similar = phones.filter((item) => item.id !== phone.id).slice(0, 2);
   const pros = listLines(phone.pros);
   const cons = listLines(phone.cons);
@@ -107,10 +110,10 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
             <a href="#resumo">Resumo</a>
             <a href="#ofertas">Ofertas</a>
             <a href="#ficha">Ficha técnica</a>
-            <a href="/comparar">Comparar</a>
-            <button type="button">Quero comprar</button>
-            <button type="button">Tenho esse</button>
-            <button type="button">Alerta de preço</button>
+            <a href={`/comparar/${phone.slug}-vs-${similar[0]?.slug || phone.slug}`}>Comparar</a>
+            <a href="#engajamento">Quero comprar</a>
+            <a href="#engajamento">Tenho esse</a>
+            <a href="#engajamento">Alerta de preço</a>
           </div>
         </section>
 
@@ -196,17 +199,39 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
         ) : null}
 
         <section className="section">
-          <div className="shell price-alert-card">
-            <div>
-              <span className="badge">Alerta de preço</span>
-              <h2>Quer pagar menos no {phone.name}?</h2>
-              <p className="muted">Cadastre um preço alvo e use esta área como base para um alerta por e-mail ou WhatsApp quando a oferta baixar.</p>
+          <div className="shell">
+            <PhoneEngagementPanel phone={phone} />
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="shell ranking">
+            <div className="rank-list">
+              <h3>Historico de preco</h3>
+              {priceHistory.length ? (
+                <div className="history-grid">
+                  {priceHistory.map((item) => (
+                    <a className="history-item" href={item.url || "#"} key={item.id}>
+                      <span>{item.store}</span>
+                      <strong>{formatCurrency(item.price)}</strong>
+                      <small>{item.capturedAt ? new Date(item.capturedAt).toLocaleDateString("pt-BR") : "Data nao cadastrada"}</small>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">Sem historico salvo ainda. Ao registrar capturas em price_history, o grafico evolui aqui.</p>
+              )}
             </div>
-            <form className="price-alert-form">
-              <input placeholder="Preço desejado" type="number" />
-              <input placeholder="Seu e-mail ou WhatsApp" />
-              <button className="button" type="button">Criar alerta</button>
-            </form>
+            <div className="rank-list">
+              <h3>Opinioes da comunidade</h3>
+              {reviews.length ? reviews.map((review) => (
+                <article className="review-card" key={review.id}>
+                  <strong>{review.rating}/10 • {review.contact || "Usuario"}</strong>
+                  <p>{review.comment}</p>
+                  <small className="muted">Prós: {textOrDash(review.pros)} • Contras: {textOrDash(review.cons)}</small>
+                </article>
+              )) : <p className="muted">Seja o primeiro a avaliar esse celular.</p>}
+            </div>
           </div>
         </section>
 

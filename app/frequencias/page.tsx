@@ -1,6 +1,14 @@
 import { Header } from "@/components/Header";
 import { getPhones } from "@/lib/phones";
 
+const brasilBands = ["B3", "B7", "B28", "n78"];
+
+function scoreBands(value: string) {
+  const normalized = value.toUpperCase();
+  const matched = brasilBands.filter((band) => normalized.includes(band.toUpperCase()));
+  return { matched, missing: brasilBands.filter((band) => !matched.includes(band)) };
+}
+
 export default async function FrequenciesPage() {
   const phones = await getPhones();
 
@@ -18,22 +26,25 @@ export default async function FrequenciesPage() {
         <section className="section">
           <div className="shell frequency-tool form-card">
             <div className="form-grid">
-              <div className="field">
-                <label>Celular</label>
-                <select>
-                  {phones.map((phone) => <option key={phone.id}>{phone.name}</option>)}
-                </select>
-              </div>
-              <div className="field">
-                <label>País</label>
-                <select defaultValue="Brasil"><option>Brasil</option></select>
-              </div>
-              <div className="field">
-                <label>Operadora</label>
-                <select><option>Todas</option><option>Claro</option><option>Vivo</option><option>TIM</option></select>
-              </div>
+              <div className="field"><label>País</label><select defaultValue="Brasil"><option>Brasil</option></select></div>
+              <div className="field"><label>Operadora</label><select><option>Todas</option><option>Claro</option><option>Vivo</option><option>TIM</option></select></div>
+              <div className="field"><label>Bandas essenciais</label><input readOnly value={brasilBands.join(", ")} /></div>
             </div>
-            <div className="notice">Nesta primeira versão, a ferramenta usa as bandas cadastradas na ficha técnica. Depois podemos cruzar automaticamente por operadora.</div>
+            <div className="frequency-results">
+              {phones.map((phone) => {
+                const result = scoreBands(phone.networkBands);
+                return (
+                  <article className="frequency-card" key={phone.id}>
+                    <strong>{phone.name}</strong>
+                    <p className="muted">{phone.networkBands || "Bandas ainda nao cadastradas"}</p>
+                    <span className={result.matched.length >= 3 ? "success-text" : "warning-text"}>
+                      {result.matched.length ? `Compatível com ${result.matched.join(", ")}` : "Cadastre as bandas para calcular compatibilidade"}
+                    </span>
+                    {result.missing.length ? <small>Faltando: {result.missing.join(", ")}</small> : null}
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </section>
       </main>

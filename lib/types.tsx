@@ -88,6 +88,27 @@ export type PhonePrice = {
   trustedStore: boolean;
 };
 
+export type PhoneReview = {
+  id: string;
+  phoneId: string;
+  rating: number;
+  contact: string;
+  ownedStatus: string;
+  pros: string;
+  cons: string;
+  comment: string;
+  createdAt: string;
+};
+
+export type PriceHistory = {
+  id: string;
+  phoneId: string;
+  store: string;
+  price: number;
+  url: string;
+  capturedAt: string;
+};
+
 export type UserProfile = {
   id: string;
   role: "user" | "editor" | "admin" | "owner";

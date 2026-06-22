@@ -1,6 +1,6 @@
 import { phones as mockPhones, prices as mockPrices } from "./mock-data";
 import { getSupabaseBrowserClient } from "./supabase";
-import type { Phone, PhonePrice } from "./types";
+import type { Phone, PhonePrice, PhoneReview, PriceHistory } from "./types";
 
 function stringValue(row: Record<string, unknown>, key: string) {
   const value = row[key];
@@ -138,4 +138,60 @@ export async function getPricesByPhoneId(phoneId: string): Promise<PhonePrice[]>
   if (error || !data?.length) return mockPrices.filter((price) => price.phoneId === phoneId);
 
   return data.map(mapPrice);
+}
+
+
+export function mapReview(row: Record<string, unknown>): PhoneReview {
+  return {
+    id: stringValue(row, "id"),
+    phoneId: stringValue(row, "phone_id"),
+    rating: numberValue(row, "rating"),
+    contact: stringValue(row, "contact"),
+    ownedStatus: stringValue(row, "owned_status"),
+    pros: stringValue(row, "pros"),
+    cons: stringValue(row, "cons"),
+    comment: stringValue(row, "comment"),
+    createdAt: stringValue(row, "created_at")
+  };
+}
+
+export function mapPriceHistory(row: Record<string, unknown>): PriceHistory {
+  return {
+    id: stringValue(row, "id"),
+    phoneId: stringValue(row, "phone_id"),
+    store: stringValue(row, "store"),
+    price: numberValue(row, "price"),
+    url: stringValue(row, "url"),
+    capturedAt: stringValue(row, "captured_at")
+  };
+}
+
+export async function getReviewsByPhoneId(phoneId: string): Promise<PhoneReview[]> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("phone_reviews")
+    .select("*")
+    .eq("phone_id", phoneId)
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (error || !data?.length) return [];
+  return data.map(mapReview);
+}
+
+export async function getPriceHistoryByPhoneId(phoneId: string): Promise<PriceHistory[]> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("price_history")
+    .select("*")
+    .eq("phone_id", phoneId)
+    .order("captured_at", { ascending: false })
+    .limit(8);
+
+  if (error || !data?.length) return [];
+  return data.map(mapPriceHistory);
 }
