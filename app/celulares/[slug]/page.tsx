@@ -121,16 +121,24 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
               <h3>Ofertas cadastradas</h3>
               {prices.length ? (
                 prices.map((price) => (
-                  <a className="rank-item" href={`/oferta/${price.id}`} key={price.id}>
-                    <strong>{price.store}</strong>
-                    <span />
-                    <span className="muted">{price.inStock ? "Em estoque" : "Sem estoque"} {price.coupon ? `• Cupom ${price.coupon}` : ""}</span>
+                  <a className="offer-card" href={`/oferta/${price.id}`} key={price.id}>
+                    <span className="store-logo">{price.store.slice(0, 1).toUpperCase()}</span>
+                    <span>
+                      <strong>{price.store}</strong>
+                      <small>
+                        {price.inStock ? "Em estoque" : "Sem estoque"}
+                        {price.coupon ? ` • Cupom ${price.coupon}` : ""}
+                        {price.cashback ? ` • Cashback ${price.cashback}` : ""}
+                      </small>
+                    </span>
                     <strong className="price">{formatCurrency(price.price)}</strong>
+                    <span className="button offer-button">Ir para loja</span>
                   </a>
                 ))
               ) : (
                 <p className="muted">Nenhuma oferta cadastrada ainda.</p>
               )}
+              <p className="affiliate-note">Podemos receber comissao pelos links. Isso nao altera o preco para voce.</p>
             </div>
           </div>
         </section>

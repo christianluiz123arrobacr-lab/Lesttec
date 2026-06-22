@@ -14,6 +14,13 @@ export default async function PhonesPage({ searchParams }: { searchParams: Promi
   const minRam = Number(params.minRam ?? 0);
   const only5g = params.fiveG === "on";
   const onlyNfc = params.nfc === "on";
+  const quickFilters = [
+    { label: "Até R$ 1.500", href: "/celulares?maxPrice=1500" },
+    { label: "Até R$ 2.000", href: "/celulares?maxPrice=2000" },
+    { label: "Com NFC", href: "/celulares?nfc=on" },
+    { label: "5G", href: "/celulares?fiveG=on" },
+    { label: "8 GB RAM+", href: "/celulares?minRam=8" }
+  ];
 
   const filtered = phones.filter((phone) => {
     const matchesQuery = !q || `${phone.name} ${phone.brand} ${phone.chipset}`.toLowerCase().includes(q);
@@ -38,6 +45,13 @@ export default async function PhonesPage({ searchParams }: { searchParams: Promi
         </section>
         <section className="section">
           <div className="shell">
+            <div className="quick-filter-row">
+              {quickFilters.map((filter) => (
+                <a className="quick-filter" href={filter.href} key={filter.href}>
+                  {filter.label}
+                </a>
+              ))}
+            </div>
             <form className="filter-card">
               <input name="q" defaultValue={params.q ?? ""} placeholder="Buscar Galaxy, iPhone, chipset..." />
               <select name="brand" defaultValue={brand}>

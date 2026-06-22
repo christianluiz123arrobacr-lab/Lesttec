@@ -1,17 +1,19 @@
 :root {
-  --bg: #f5f7fb;
+  --bg: #f7f9fe;
   --panel: #ffffff;
-  --panel-soft: #eef3ff;
-  --text: #182033;
-  --muted: #657087;
-  --line: #dfe5f2;
-  --primary: #2347d8;
-  --primary-dark: #142c9b;
-  --accent: #ff2b7a;
-  --green: #16b981;
-  --orange: #ff9f1c;
+  --panel-soft: #eef4ff;
+  --text: #0f172a;
+  --muted: #667085;
+  --line: #d9e2f2;
+  --primary: #1d4ed8;
+  --primary-dark: #172554;
+  --accent: #7c3aed;
+  --green: #10b981;
+  --orange: #f59e0b;
   --danger: #ef4444;
-  --shadow: 0 18px 45px rgba(24, 32, 51, 0.09);
+  --gold: #f7c948;
+  --shadow: 0 24px 70px rgba(15, 23, 42, 0.1);
+  --shadow-soft: 0 14px 36px rgba(15, 23, 42, 0.08);
 }
 
 * {
@@ -22,9 +24,12 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.08), transparent 34rem),
+    linear-gradient(180deg, #fbfdff 0%, var(--bg) 42rem);
   color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.01em;
 }
 
 a {
@@ -48,9 +53,10 @@ textarea {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: #1e35c8;
+  background: rgba(23, 37, 84, 0.9);
   color: white;
-  box-shadow: 0 12px 28px rgba(18, 35, 132, 0.2);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
 }
 
 .nav {
@@ -105,10 +111,13 @@ textarea {
 }
 
 .hero {
-  background: radial-gradient(circle at 78% 12%, rgba(255, 43, 122, 0.34), transparent 24%),
-    linear-gradient(135deg, #1e35c8 0%, #152585 100%);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(124, 58, 237, 0.44), transparent 26%),
+    radial-gradient(circle at 18% 12%, rgba(16, 185, 129, 0.16), transparent 22%),
+    linear-gradient(135deg, #172554 0%, #1d4ed8 55%, #4c1d95 100%);
   color: white;
-  padding: 52px 0 42px;
+  padding: 86px 0 74px;
+  overflow: hidden;
 }
 
 .hero-grid {
@@ -126,9 +135,9 @@ textarea {
 
 .hero h1 {
   margin: 0 0 14px;
-  font-size: clamp(36px, 6vw, 62px);
-  line-height: 0.98;
-  letter-spacing: 0;
+  font-size: clamp(42px, 7vw, 76px);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
 }
 
 .hero p {
@@ -146,6 +155,24 @@ textarea {
   margin-top: 28px;
 }
 
+.hero-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.hero-proof span {
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.11);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -159,6 +186,13 @@ textarea {
   color: white;
   font-weight: 800;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.18);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(29, 78, 216, 0.26);
 }
 
 .button.secondary {
@@ -176,11 +210,55 @@ textarea {
   color: white;
 }
 
+.hero-product {
+  position: relative;
+  display: grid;
+  gap: 16px;
+}
+
+.hero-phone-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 310px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 30px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.06));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.22);
+}
+
+.hero-phone-stage img {
+  width: min(72%, 300px);
+  height: 250px;
+  object-fit: contain;
+  filter: drop-shadow(0 32px 34px rgba(0, 0, 0, 0.32));
+}
+
+.hero-floating-badge {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(247, 201, 72, 0.96);
+  color: #422006;
+  font-weight: 900;
+  font-size: 13px;
+}
+
 .hero-card {
   background: rgba(255, 255, 255, 0.09);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 18px;
-  padding: 22px;
+  border-radius: 24px;
+  padding: 24px;
+  backdrop-filter: blur(18px);
+}
+
+.hero-card-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .score-stack {
@@ -210,7 +288,7 @@ textarea {
 }
 
 .section {
-  padding: 44px 0;
+  padding: 72px 0;
 }
 
 .section-header {
@@ -243,17 +321,30 @@ textarea {
   min-height: 100%;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 22px;
   background: var(--panel);
   box-shadow: var(--shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.phone-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(29, 78, 216, 0.32);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.14);
 }
 
 .phone-card-image {
   height: 180px;
-  border-radius: 14px;
-  background: var(--panel-soft);
-  object-fit: cover;
+  border-radius: 18px;
+  background: radial-gradient(circle at 50% 20%, white, var(--panel-soft));
+  object-fit: contain;
   width: 100%;
+  padding: 14px;
+  transition: transform 180ms ease;
+}
+
+.phone-card:hover .phone-card-image {
+  transform: scale(1.03);
 }
 
 .phone-card h3 {
@@ -384,6 +475,8 @@ textarea {
   background: white;
   color: var(--text);
   box-shadow: var(--shadow);
+  position: sticky;
+  top: 100px;
 }
 
 .buy-box .button {
@@ -515,13 +608,13 @@ textarea {
 
 .admin-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 24px;
 }
 
 .admin-manager {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -564,6 +657,12 @@ textarea {
   color: var(--text);
   text-align: left;
   cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-phone-item:hover {
+  transform: translateX(3px);
+  border-color: rgba(29, 78, 216, 0.3);
 }
 
 .admin-phone-item.active {
@@ -658,7 +757,7 @@ textarea {
 
 .form-card {
   padding: 22px;
-  border-radius: 18px;
+  border-radius: 24px;
   background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -884,6 +983,38 @@ textarea {
   box-shadow: var(--shadow);
 }
 
+.quick-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.quick-filter,
+.quick-card {
+  border: 1px solid rgba(29, 78, 216, 0.14);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-soft);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.quick-filter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.quick-filter:hover,
+.quick-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124, 58, 237, 0.34);
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.12);
+}
+
 .filter-card input,
 .filter-card select {
   min-height: 44px;
@@ -905,9 +1036,99 @@ textarea {
   font-weight: 700;
 }
 
+.offer-card {
+  display: grid;
+  grid-template-columns: 44px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffff, #f8fbff);
+  box-shadow: var(--shadow-soft);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.offer-card + .offer-card {
+  margin-top: 10px;
+}
+
+.offer-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(16, 185, 129, 0.34);
+  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.12);
+}
+
+.store-logo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  font-weight: 900;
+}
+
+.offer-card small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.offer-button {
+  min-height: 38px;
+  padding-inline: 14px;
+  background: var(--green);
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.2);
+}
+
+.affiliate-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.editorial-strip {
+  padding-top: 0;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.quick-card {
+  display: grid;
+  gap: 8px;
+  min-height: 132px;
+  padding: 20px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 90% 12%, rgba(124, 58, 237, 0.14), transparent 34%),
+    white;
+}
+
+.quick-card span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.quick-card strong {
+  font-size: 20px;
+  letter-spacing: -0.03em;
+}
+
 @media (max-width: 980px) {
   .filter-card,
   .offer-form {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-grid,
+  .offer-card {
     grid-template-columns: 1fr;
   }
 }

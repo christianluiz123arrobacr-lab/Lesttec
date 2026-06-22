@@ -13,6 +13,12 @@ export default async function HomePage() {
   const byValue = [...phones].sort((a, b) => b.scoreValue - a.scoreValue);
   const byPrice = [...phones].sort((a, b) => a.bestPrice - b.bestPrice);
   const featured = byValue[0];
+  const premiumPicks = [
+    { label: "Até R$ 1.500", href: "/celulares?maxPrice=1500" },
+    { label: "Até R$ 2.000", href: "/celulares?maxPrice=2000" },
+    { label: "Com NFC", href: "/celulares?nfc=on" },
+    { label: "5G", href: "/celulares?fiveG=on" }
+  ];
 
   return (
     <>
@@ -26,6 +32,11 @@ export default async function HomePage() {
               <p>
                 Ficha tecnica, precos, AnTuTu, tamanho visual e uma nota propria para parar de escolher celular no escuro.
               </p>
+              <div className="hero-proof">
+                <span>Rankings por custo-beneficio</span>
+                <span>Ofertas com menor preco</span>
+                <span>Ficha tecnica completa</span>
+              </div>
               <div className="hero-actions">
                 <Link className="button secondary" href="/comparar">
                   Comparar celulares
@@ -35,18 +46,28 @@ export default async function HomePage() {
                 </Link>
               </div>
             </div>
-            <div className="hero-card">
-              <h2>{featured.name}</h2>
-              <p className="muted">Nota Vale a Pena: {finalScore(featured)}</p>
-              <ScoreRows
-                items={[
-                  { label: "Desempenho", value: featured.scorePerformance },
-                  { label: "Camera", value: featured.scoreCamera },
-                  { label: "Bateria", value: featured.scoreBattery },
-                  { label: "Tela", value: featured.scoreDisplay },
-                  { label: "Valor", value: featured.scoreValue }
-                ]}
-              />
+            <div className="hero-product">
+              <div className="hero-phone-stage">
+                <img src={featured.imageUrl} alt={featured.name} />
+                <span className="hero-floating-badge">Melhor escolha agora</span>
+              </div>
+              <div className="hero-card">
+                <div className="hero-card-top">
+                  <span className="badge score-badge">Nota {finalScore(featured)}</span>
+                  <span className="badge">Atualizado</span>
+                </div>
+                <h2>{featured.name}</h2>
+                <p className="muted">Boa compra quando aparece perto de {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(featured.bestPrice)}.</p>
+                <ScoreRows
+                  items={[
+                    { label: "Desempenho", value: featured.scorePerformance },
+                    { label: "Camera", value: featured.scoreCamera },
+                    { label: "Bateria", value: featured.scoreBattery },
+                    { label: "Tela", value: featured.scoreDisplay },
+                    { label: "Valor", value: featured.scoreValue }
+                  ]}
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -63,6 +84,25 @@ export default async function HomePage() {
             <div className="grid">
               {byValue.map((phone) => (
                 <PhoneCard phone={phone} key={phone.id} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section editorial-strip">
+          <div className="shell">
+            <div className="section-header">
+              <div>
+                <h2>Escolha pelo seu objetivo</h2>
+                <p className="section-subtitle">Atalhos rapidos para transformar a home em uma vitrine editorial.</p>
+              </div>
+            </div>
+            <div className="quick-grid">
+              {premiumPicks.map((pick) => (
+                <Link className="quick-card" href={pick.href} key={pick.href}>
+                  <span>{pick.label}</span>
+                  <strong>Ver melhores modelos</strong>
+                </Link>
               ))}
             </div>
           </div>
