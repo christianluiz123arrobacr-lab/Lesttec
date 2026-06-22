@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { PhoneSizeCompare } from "@/components/PhoneSizeCompare";
 import { ScoreRows } from "@/components/ScoreRows";
@@ -19,6 +20,17 @@ function listLines(value: string) {
     .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const phone = await getPhoneBySlug(slug);
+  if (!phone) return { title: "Celular não encontrado" };
+  return {
+    title: `${phone.name}: ficha técnica, preço e ofertas`,
+    description: phone.shortReview || phone.verdict || `Veja ficha técnica, preço, ofertas e nota do ${phone.name}.`,
+    openGraph: { title: phone.name, description: phone.shortReview || phone.verdict, images: phone.imageUrl ? [phone.imageUrl] : [] }
+  };
 }
 
 export async function generateStaticParams() {
@@ -83,7 +95,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
               <span className="muted">Melhor preco</span>
               <h2>{formatCurrency(phone.bestPrice)}</h2>
               <p className="muted">Preco medio cadastrado: {formatCurrency(phone.price)}</p>
-              <a className="button" href={phone.affiliateUrl}>
+              <a className="button" href={prices[0] ? `/oferta/${prices[0].id}` : phone.affiliateUrl}>
                 Ver oferta
               </a>
             </aside>
@@ -109,10 +121,10 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
               <h3>Ofertas cadastradas</h3>
               {prices.length ? (
                 prices.map((price) => (
-                  <a className="rank-item" href={price.url} key={price.id}>
+                  <a className="rank-item" href={`/oferta/${price.id}`} key={price.id}>
                     <strong>{price.store}</strong>
                     <span />
-                    <span className="muted">Atualizado em {price.updatedAt}</span>
+                    <span className="muted">{price.inStock ? "Em estoque" : "Sem estoque"} {price.coupon ? `• Cupom ${price.coupon}` : ""}</span>
                     <strong className="price">{formatCurrency(price.price)}</strong>
                   </a>
                 ))
@@ -154,6 +166,15 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
           </section>
         ) : null}
 
+        {(phone.shortReview || phone.recommendedFor || phone.notRecommendedFor || phone.alternatives) ? (
+          <section className="section">
+            <div className="shell ranking">
+              <div className="rank-list"><h3>Resumo de compra</h3><p>{phone.shortReview || phone.verdict}</p><p className="muted">Indicado para: {textOrDash(phone.recommendedFor)}</p><p className="muted">Evite se: {textOrDash(phone.notRecommendedFor)}</p></div>
+              <div className="rank-list"><h3>Alternativas</h3><p>{textOrDash(phone.alternatives)}</p><p className="muted">Menor preço histórico: {formatCurrency(phone.minHistoricalPrice)}</p></div>
+            </div>
+          </section>
+        ) : null}
+
         <section className="section">
           <div className="shell">
             <div className="section-header">
@@ -187,9 +208,9 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>Tela</th>
                   <td>
-                    {phone.display}, {phone.displayHz} Hz
+                    {phone.screenSizeIn ? `${phone.screenSizeIn} pol., ` : ""}{phone.display}, {phone.displayHz} Hz
                     {phone.screenResolution ? `, ${phone.screenResolution}` : ""}
-                    {phone.protection ? `, ${phone.protection}` : ""}
+                    {phone.protection ? `, ${phone.protection}` : ""}{phone.brightnessNits ? `, ${phone.brightnessNits} nits` : ""}
                   </td>
                 </tr>
                 <tr>
@@ -201,7 +222,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>Camera principal</th>
                   <td>
-                    {phone.mainCameraMp} MP, video {phone.video}
+                    {phone.mainCameraMp} MP{phone.cameraSensor ? `, ${phone.cameraSensor}` : ""}{phone.hasOis ? ", OIS" : ""}{phone.opticalZoom ? `, zoom ${phone.opticalZoom}` : ""}, video {phone.video}
                   </td>
                 </tr>
                 <tr>
@@ -214,7 +235,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>Bateria e carregamento</th>
                   <td>
-                    {phone.batteryMah} mAh / {phone.chargingW} W
+                    {phone.batteryMah} mAh / {phone.chargingW} W{phone.wirelessChargingW ? ` / sem fio ${phone.wirelessChargingW} W` : ""}{phone.reverseCharging ? " / reverso" : ""}
                   </td>
                 </tr>
                 <tr>
@@ -248,6 +269,10 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>USB</th>
                   <td>{textOrDash(phone.usbType)}</td>
+                </tr>
+                <tr>
+                  <th>Updates e biometria</th>
+                  <td>{textOrDash(phone.updatePromise)} / {textOrDash(phone.biometricType)}</td>
                 </tr>
                 <tr>
                   <th>Bandas</th>

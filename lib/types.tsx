@@ -5,6 +5,7 @@ export type Phone = {
   brand: string;
   imageUrl: string;
   launchStatus: "available" | "rumor" | "new";
+  publicationStatus: "draft" | "review" | "published" | "archived";
   releaseDate: string;
   price: number;
   bestPrice: number;
@@ -55,6 +56,22 @@ export type Phone = {
   scoreDisplay: number;
   scoreBuild: number;
   scoreValue: number;
+  shortReview: string;
+  recommendedFor: string;
+  notRecommendedFor: string;
+  alternatives: string;
+  minHistoricalPrice: number;
+  lastPriceCheckedAt: string;
+  screenSizeIn: number;
+  brightnessNits: number;
+  cameraSensor: string;
+  hasOis: boolean;
+  opticalZoom: string;
+  updatePromise: string;
+  biometricType: string;
+  wirelessChargingW: number;
+  reverseCharging: boolean;
+  editorialPriority: number;
   verdict: string;
 };
 
@@ -65,11 +82,15 @@ export type PhonePrice = {
   price: number;
   url: string;
   updatedAt: string;
+  coupon: string;
+  cashback: string;
+  inStock: boolean;
+  trustedStore: boolean;
 };
 
 export type UserProfile = {
   id: string;
-  role: "user" | "admin";
+  role: "user" | "editor" | "admin" | "owner";
   fullName: string;
   phone: string;
   city: string;

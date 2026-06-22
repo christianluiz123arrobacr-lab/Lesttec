@@ -20,7 +20,7 @@ const emptyProfile: Omit<UserProfile, "id" | "role"> = {
 function mapProfile(row: Record<string, unknown>): UserProfile {
   return {
     id: String(row.id),
-    role: row.role === "admin" ? "admin" : "user",
+    role: ["editor", "admin", "owner"].includes(String(row.role)) ? (String(row.role) as UserProfile["role"]) : "user",
     fullName: String(row.full_name ?? ""),
     phone: String(row.phone ?? ""),
     city: String(row.city ?? ""),
@@ -39,7 +39,7 @@ export function AccountClient() {
   const [password, setPassword] = useState("");
   const [profile, setProfile] = useState(emptyProfile);
   const [userId, setUserId] = useState("");
-  const [role, setRole] = useState<"user" | "admin">("user");
+  const [role, setRole] = useState<UserProfile["role"]>("user");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 

@@ -24,6 +24,7 @@ export function mapPhone(row: Record<string, unknown>): Phone {
     brand: stringValue(row, "brand"),
     imageUrl: stringValue(row, "image_url"),
     launchStatus: (stringValue(row, "launch_status") || "available") as Phone["launchStatus"],
+    publicationStatus: (stringValue(row, "publication_status") || "published") as Phone["publicationStatus"],
     releaseDate: stringValue(row, "release_date"),
     price: numberValue(row, "price"),
     bestPrice: numberValue(row, "best_price"),
@@ -74,6 +75,22 @@ export function mapPhone(row: Record<string, unknown>): Phone {
     scoreDisplay: numberValue(row, "score_display"),
     scoreBuild: numberValue(row, "score_build"),
     scoreValue: numberValue(row, "score_value"),
+    shortReview: stringValue(row, "short_review"),
+    recommendedFor: stringValue(row, "recommended_for"),
+    notRecommendedFor: stringValue(row, "not_recommended_for"),
+    alternatives: stringValue(row, "alternatives"),
+    minHistoricalPrice: numberValue(row, "min_historical_price"),
+    lastPriceCheckedAt: stringValue(row, "last_price_checked_at"),
+    screenSizeIn: numberValue(row, "screen_size_in"),
+    brightnessNits: numberValue(row, "brightness_nits"),
+    cameraSensor: stringValue(row, "camera_sensor"),
+    hasOis: booleanValue(row, "has_ois"),
+    opticalZoom: stringValue(row, "optical_zoom"),
+    updatePromise: stringValue(row, "update_promise"),
+    biometricType: stringValue(row, "biometric_type"),
+    wirelessChargingW: numberValue(row, "wireless_charging_w"),
+    reverseCharging: booleanValue(row, "reverse_charging"),
+    editorialPriority: numberValue(row, "editorial_priority"),
     verdict: stringValue(row, "verdict")
   };
 }
@@ -85,7 +102,11 @@ export function mapPrice(row: Record<string, unknown>): PhonePrice {
     store: String(row.store),
     price: Number(row.price),
     url: String(row.url),
-    updatedAt: String(row.updated_at)
+    updatedAt: String(row.updated_at),
+    coupon: stringValue(row, "coupon"),
+    cashback: stringValue(row, "cashback"),
+    inStock: row.in_stock !== false,
+    trustedStore: row.trusted_store !== false
   };
 }
 
@@ -93,7 +114,7 @@ export async function getPhones(): Promise<Phone[]> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return mockPhones;
 
-  const { data, error } = await supabase.from("phones").select("*").order("score_value", { ascending: false });
+  const { data, error } = await supabase.from("phones").select("*").eq("publication_status", "published").order("score_value", { ascending: false });
   if (error || !data?.length) return mockPhones;
 
   return data.map(mapPhone);

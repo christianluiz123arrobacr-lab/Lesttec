@@ -23,7 +23,24 @@ const extraSpecs = {
   gps: "Sim",
   networkBands: "",
   pros: "",
-  cons: ""
+  cons: "",
+  publicationStatus: "published" as const,
+  shortReview: "",
+  recommendedFor: "",
+  notRecommendedFor: "",
+  alternatives: "",
+  minHistoricalPrice: 0,
+  lastPriceCheckedAt: "",
+  screenSizeIn: 0,
+  brightnessNits: 0,
+  cameraSensor: "",
+  hasOis: false,
+  opticalZoom: "",
+  updatePromise: "",
+  biometricType: "",
+  wirelessChargingW: 0,
+  reverseCharging: false,
+  editorialPriority: 0
 };
 
 export const phones: Phone[] = [
@@ -178,8 +195,8 @@ export const phones: Phone[] = [
 ];
 
 export const prices: PhonePrice[] = [
-  { id: "1", phoneId: "poco-x8-pro", store: "Amazon", price: 2590, url: "https://example.com/amazon-poco", updatedAt: "2026-06-20" },
-  { id: "2", phoneId: "poco-x8-pro", store: "Mercado Livre", price: 2399, url: "https://example.com/ml-poco", updatedAt: "2026-06-20" },
-  { id: "3", phoneId: "galaxy-a56", store: "Magalu", price: 1899, url: "https://example.com/magalu-a56", updatedAt: "2026-06-20" },
-  { id: "4", phoneId: "oneplus-15", store: "Importador", price: 3999, url: "https://example.com/oneplus", updatedAt: "2026-06-20" }
+  { id: "1", phoneId: "poco-x8-pro", store: "Amazon", price: 2590, url: "https://example.com/amazon-poco", updatedAt: "2026-06-20", coupon: "", cashback: "", inStock: true, trustedStore: true },
+  { id: "2", phoneId: "poco-x8-pro", store: "Mercado Livre", price: 2399, url: "https://example.com/ml-poco", updatedAt: "2026-06-20", coupon: "", cashback: "", inStock: true, trustedStore: true },
+  { id: "3", phoneId: "galaxy-a56", store: "Magalu", price: 1899, url: "https://example.com/magalu-a56", updatedAt: "2026-06-20", coupon: "", cashback: "", inStock: true, trustedStore: true },
+  { id: "4", phoneId: "oneplus-15", store: "Importador", price: 3999, url: "https://example.com/oneplus", updatedAt: "2026-06-20", coupon: "", cashback: "", inStock: true, trustedStore: true }
 ];

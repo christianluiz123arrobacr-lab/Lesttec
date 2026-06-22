@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { deleteOfferAction, deletePhoneAction, saveOfferAction } from "@/app/admin/actions";
+import { deleteOfferAction, deletePhoneAction, importPhonesCsvAction, saveOfferAction } from "@/app/admin/actions";
 import { mapPhone, mapPrice } from "@/lib/phones";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { Phone, PhonePrice } from "@/lib/types";
@@ -12,6 +12,8 @@ type AdminStats = {
   phones: number;
   users: number;
   offerUsers: number;
+  drafts: number;
+  missingOffers: number;
 };
 type AdminProfile = {
   id: string;
@@ -40,6 +42,7 @@ function AdminPhoneManager({ accessToken }: { accessToken: string }) {
   const [deleteState, deleteAction, deletePending] = useActionState(deletePhoneAction, actionInitialState);
   const [offerState, offerAction, offerPending] = useActionState(saveOfferAction, actionInitialState);
   const [deleteOfferState, deleteOffer, deleteOfferPending] = useActionState(deleteOfferAction, actionInitialState);
+  const [csvState, csvAction, csvPending] = useActionState(importPhonesCsvAction, actionInitialState);
 
   const selectedPhone = useMemo(() => phones.find((phone) => phone.id === selectedId) ?? null, [phones, selectedId]);
 
@@ -69,7 +72,7 @@ function AdminPhoneManager({ accessToken }: { accessToken: string }) {
     }
 
     loadPhones();
-  }, [deleteState, offerState, deleteOfferState]);
+  }, [deleteState, offerState, deleteOfferState, csvState]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -135,6 +138,17 @@ function AdminPhoneManager({ accessToken }: { accessToken: string }) {
       </div>
 
       <div className="admin-main-stack">
+<div className="form-card">
+          <h3 style={{ marginTop: 0 }}>Importar CSV</h3>
+          <p className="muted">Cole CSV com cabeçalho: name,slug,brand,price,best_price,affiliate_url,chipset,ram_gb,storage_gb,battery_mah,main_camera_mp,antutu_score,score_value,publication_status.</p>
+          <form action={csvAction} className="csv-import-form">
+            <input name="access_token" type="hidden" value={accessToken} />
+            <textarea name="csv" placeholder="name,slug,brand,price..." />
+            <button className="button ghost" disabled={csvPending} type="submit">{csvPending ? "Importando..." : "Importar/atualizar"}</button>
+          </form>
+          {csvState.message ? <p className={csvState.ok ? "winner" : "muted"}>{csvState.message}</p> : null}
+        </div>
+
         <AdminPhoneForm key={selectedPhone?.id ?? "new-phone"} accessToken={accessToken} phone={selectedPhone} />
 
         {selectedPhone ? (
@@ -172,6 +186,16 @@ function AdminPhoneManager({ accessToken }: { accessToken: string }) {
                 <label>Link da oferta</label>
                 <input name="url" placeholder="https://..." required />
               </div>
+              <div className="field">
+                <label>Cupom</label>
+                <input name="coupon" placeholder="CUPOM10" />
+              </div>
+              <div className="field">
+                <label>Cashback</label>
+                <input name="cashback" placeholder="5%" />
+              </div>
+              <label className="checkbox-line"><input name="in_stock" type="checkbox" defaultChecked /> Em estoque</label>
+              <label className="checkbox-line"><input name="trusted_store" type="checkbox" defaultChecked /> Loja confiável</label>
               <button className="button" disabled={offerPending} type="submit">
                 {offerPending ? "Salvando..." : "Adicionar oferta"}
               </button>
@@ -186,6 +210,7 @@ function AdminPhoneManager({ accessToken }: { accessToken: string }) {
                     <strong>{offer.store}</strong>
                     <span>R$ {offer.price.toLocaleString("pt-BR")}</span>
                   </div>
+                  <small>{offer.coupon ? `Cupom ${offer.coupon}` : "Sem cupom"} {offer.cashback ? `• Cashback ${offer.cashback}` : ""}</small>
                   <a className="button ghost" href={offer.url} target="_blank" rel="noreferrer">
                     Abrir
                   </a>
@@ -218,7 +243,7 @@ export function AdminDashboard() {
   const [state, setState] = useState<AdminState>("loading");
   const [accessToken, setAccessToken] = useState("");
   const [email, setEmail] = useState("");
-  const [stats, setStats] = useState<AdminStats>({ phones: 0, users: 0, offerUsers: 0 });
+  const [stats, setStats] = useState<AdminStats>({ phones: 0, users: 0, offerUsers: 0, drafts: 0, missingOffers: 0 });
   const [profiles, setProfiles] = useState<AdminProfile[]>([]);
   const offerContacts = profiles
     .filter((profile) => profile.wantsOffers)
@@ -250,15 +275,17 @@ export function AdminDashboard() {
 
       const { data } = await client.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
 
-      if (data?.role !== "admin") {
+      if (!["admin", "owner"].includes(String(data?.role))) {
         setState("forbidden");
         return;
       }
 
-      const [{ count: phoneCount }, { count: userCount }, { count: offerUserCount }, { data: profileRows }] = await Promise.all([
+      const [{ count: phoneCount }, { count: userCount }, { count: offerUserCount }, { count: draftCount }, { data: noOfferRows }, { data: profileRows }] = await Promise.all([
         client.from("phones").select("id", { count: "exact", head: true }),
         client.from("profiles").select("id", { count: "exact", head: true }),
         client.from("profiles").select("id", { count: "exact", head: true }).eq("wants_offers", true),
+        client.from("phones").select("id", { count: "exact", head: true }).neq("publication_status", "published"),
+        client.from("phones").select("id,best_price,affiliate_url").or("best_price.eq.0,affiliate_url.eq."),
         client
           .from("profiles")
           .select("id,role,full_name,phone,city,state,budget_min,budget_max,preferred_brands,wants_offers")
@@ -269,7 +296,9 @@ export function AdminDashboard() {
       setStats({
         phones: phoneCount ?? 0,
         users: userCount ?? 0,
-        offerUsers: offerUserCount ?? 0
+        offerUsers: offerUserCount ?? 0,
+        drafts: draftCount ?? 0,
+        missingOffers: noOfferRows?.length ?? 0
       });
       setProfiles(
         (profileRows ?? []).map((profile) => ({
@@ -333,6 +362,14 @@ export function AdminDashboard() {
         <div className="stat-card">
           <strong>{stats.offerUsers}</strong>
           <span>aceitam receber ofertas</span>
+        </div>
+        <div className="stat-card">
+          <strong>{stats.drafts}</strong>
+          <span>rascunhos/revisão</span>
+        </div>
+        <div className="stat-card">
+          <strong>{stats.missingOffers}</strong>
+          <span>sem oferta ativa</span>
         </div>
       </div>
 
