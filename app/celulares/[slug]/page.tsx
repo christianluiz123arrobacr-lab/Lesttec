@@ -56,13 +56,27 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
     <>
       <Header />
       <main>
-        <section className="detail-hero">
+        <section className="detail-hero premium-detail-hero">
           <div className="shell detail-grid">
-            <img className="product-shot" src={phone.imageUrl} alt={phone.name} />
-            <div>
+            <div className="product-stage">
+              <span className="product-glow" />
+              <img className="product-shot" src={phone.imageUrl} alt={phone.name} />
+              <div className="hero-score-ring">
+                <strong>{finalScore(phone)}</strong>
+                <span>nota</span>
+              </div>
+            </div>
+            <div className="detail-copy">
               <p className="eyebrow">{phone.brand}</p>
               <h1>{phone.name}</h1>
               <p>{phone.verdict}</p>
+              <div className="hero-badges">
+                {phone.fiveG ? <span>5G</span> : null}
+                {phone.nfc ? <span>NFC</span> : null}
+                {phone.hasOis ? <span>OIS</span> : null}
+                {phone.waterResistance ? <span>{phone.waterResistance}</span> : null}
+                {phone.wirelessChargingW ? <span>Qi {phone.wirelessChargingW} W</span> : null}
+              </div>
               <div className="spec-grid">
                 <div className="spec-tile">
                   <strong>{phone.ramGb} GB</strong>
@@ -94,12 +108,19 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 </div>
               </div>
             </div>
-            <aside className="buy-box">
-              <span className="muted">Melhor preco</span>
+            <aside className="buy-box premium-buy-box">
+              <span className="deal-label">Melhor oferta encontrada</span>
               <h2>{formatCurrency(phone.bestPrice)}</h2>
               <p className="muted">Preco medio cadastrado: {formatCurrency(phone.price)}</p>
+              <div className="buy-box-mini">
+                <span>{prices.length} lojas</span>
+                <span>{phone.minHistoricalPrice ? `Histórico ${formatCurrency(phone.minHistoricalPrice)}` : "Histórico em breve"}</span>
+              </div>
               <a className="button" href={prices[0] ? `/oferta/${prices[0].id}` : phone.affiliateUrl}>
                 Ver oferta
+              </a>
+              <a className="button ghost" href="#engajamento">
+                Criar alerta
               </a>
             </aside>
           </div>
@@ -110,10 +131,10 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
             <a href="#resumo">Resumo</a>
             <a href="#ofertas">Ofertas</a>
             <a href="#ficha">Ficha técnica</a>
+            <a href="#historico">Histórico</a>
+            <a href="#opinioes">Opiniões</a>
             <a href={`/comparar/${phone.slug}-vs-${similar[0]?.slug || phone.slug}`}>Comparar</a>
             <a href="#engajamento">Quero comprar</a>
-            <a href="#engajamento">Tenho esse</a>
-            <a href="#engajamento">Alerta de preço</a>
           </div>
         </section>
 
@@ -145,8 +166,10 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                         {price.coupon ? ` • Cupom ${price.coupon}` : ""}
                         {price.cashback ? ` • Cashback ${price.cashback}` : ""}
                       </small>
+                      <small>{price.trustedStore ? "Loja confiável" : "Verifique a loja"} • Atualizado em {price.updatedAt ? new Date(price.updatedAt).toLocaleDateString("pt-BR") : "breve"}</small>
                     </span>
                     <strong className="price">{formatCurrency(price.price)}</strong>
+                    {price.coupon ? <span className="coupon-pill">{price.coupon}</span> : null}
                     <span className="button offer-button">Ir para loja</span>
                   </a>
                 ))
@@ -198,7 +221,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
           </section>
         ) : null}
 
-        <section className="section">
+        <section className="section" id="historico">
           <div className="shell">
             <PhoneEngagementPanel phone={phone} />
           </div>
@@ -206,7 +229,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
 
         <section className="section">
           <div className="shell ranking">
-            <div className="rank-list">
+            <div className="rank-list" id="opinioes">
               <h3>Historico de preco</h3>
               {priceHistory.length ? (
                 <div className="history-grid">
