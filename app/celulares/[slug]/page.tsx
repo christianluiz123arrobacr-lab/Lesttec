@@ -139,6 +139,51 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
         </section>
 
         <section className="section" id="resumo">
+          <div className="shell">
+            <div className="kimovil-summary-board">
+              <div className="kimovil-score-card">
+                <span>Nota "K"</span>
+                <strong>{finalScore(phone)}</strong>
+                <small>Qualidade-preço</small>
+                <div className="radar-shape" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+              </div>
+              <div className="kimovil-summary-card user-rating-card">
+                <span>Avaliação dos usuários</span>
+                <strong>{reviews.length ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : finalScore(phone)}</strong>
+                <div className="mini-bars"><i /><i /><i /></div>
+                <small>{reviews.length || "Sem"} opiniões</small>
+              </div>
+              <div className="kimovil-summary-card efficiency-card">
+                <span>Eficiência</span>
+                <strong>{phone.scoreBattery >= 8.5 && phone.scorePerformance >= 8.5 ? "A" : phone.scoreValue >= 8 ? "B" : "C"}</strong>
+                <small>Energia / desempenho</small>
+              </div>
+              <div className="kimovil-summary-card good-bad-card">
+                <div>
+                  <strong>O bom</strong>
+                  <ul>
+                    {(pros.length ? pros : ["Bateria", "qualidade de exibição", phone.nfc ? "NFC" : "preço", "desempenho"]).slice(0, 4).map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <strong>Melhorar</strong>
+                  <ul>
+                    {(cons.length ? cons : ["Verificar preço", "câmeras extras", "disponibilidade"]).slice(0, 3).map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="kimovil-spec-strip">
+              <span><strong>{phone.screenSizeIn || "-"}"</strong>{phone.screenType || "Tela"}</span>
+              <span><strong>{phone.weightG} g</strong>{phone.heightMm} x {phone.widthMm} mm</span>
+              <span><strong>{phone.chipset || "Chipset"}</strong>{phone.ramGb} GB RAM</span>
+              <span><strong>{formatNumber(phone.antutuScore)}</strong>AnTuTu {phone.antutuVersion}</span>
+              <span><strong>{phone.batteryMah} mAh</strong>{phone.chargingW} W</span>
+              <span><strong>{phone.mainCameraMp} MP</strong>{phone.cameraSensor || "Câmera"}</span>
+              <span><strong>{phone.os || "Sistema"}</strong>{phone.fiveG ? "5G" : "4G"} {phone.nfc ? "• NFC" : ""}</span>
+            </div>
+          </div>
+
           <div className="shell ranking">
             <div className="rank-list">
               <h3>Pontuacao</h3>
