@@ -1,6 +1,6 @@
 import { phones as mockPhones, prices as mockPrices } from "./mock-data";
 import { getSupabaseBrowserClient } from "./supabase";
-import type { Phone, PhonePrice } from "./types";
+import type { Phone, PhonePrice, PhoneReview, PriceHistory } from "./types";
 
 function stringValue(row: Record<string, unknown>, key: string) {
   const value = row[key];
@@ -24,6 +24,7 @@ export function mapPhone(row: Record<string, unknown>): Phone {
     brand: stringValue(row, "brand"),
     imageUrl: stringValue(row, "image_url"),
     launchStatus: (stringValue(row, "launch_status") || "available") as Phone["launchStatus"],
+    publicationStatus: (stringValue(row, "publication_status") || "published") as Phone["publicationStatus"],
     releaseDate: stringValue(row, "release_date"),
     price: numberValue(row, "price"),
     bestPrice: numberValue(row, "best_price"),
@@ -74,6 +75,22 @@ export function mapPhone(row: Record<string, unknown>): Phone {
     scoreDisplay: numberValue(row, "score_display"),
     scoreBuild: numberValue(row, "score_build"),
     scoreValue: numberValue(row, "score_value"),
+    shortReview: stringValue(row, "short_review"),
+    recommendedFor: stringValue(row, "recommended_for"),
+    notRecommendedFor: stringValue(row, "not_recommended_for"),
+    alternatives: stringValue(row, "alternatives"),
+    minHistoricalPrice: numberValue(row, "min_historical_price"),
+    lastPriceCheckedAt: stringValue(row, "last_price_checked_at"),
+    screenSizeIn: numberValue(row, "screen_size_in"),
+    brightnessNits: numberValue(row, "brightness_nits"),
+    cameraSensor: stringValue(row, "camera_sensor"),
+    hasOis: booleanValue(row, "has_ois"),
+    opticalZoom: stringValue(row, "optical_zoom"),
+    updatePromise: stringValue(row, "update_promise"),
+    biometricType: stringValue(row, "biometric_type"),
+    wirelessChargingW: numberValue(row, "wireless_charging_w"),
+    reverseCharging: booleanValue(row, "reverse_charging"),
+    editorialPriority: numberValue(row, "editorial_priority"),
     verdict: stringValue(row, "verdict")
   };
 }
@@ -85,7 +102,11 @@ export function mapPrice(row: Record<string, unknown>): PhonePrice {
     store: String(row.store),
     price: Number(row.price),
     url: String(row.url),
-    updatedAt: String(row.updated_at)
+    updatedAt: String(row.updated_at),
+    coupon: stringValue(row, "coupon"),
+    cashback: stringValue(row, "cashback"),
+    inStock: row.in_stock !== false,
+    trustedStore: row.trusted_store !== false
   };
 }
 
@@ -93,7 +114,7 @@ export async function getPhones(): Promise<Phone[]> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return mockPhones;
 
-  const { data, error } = await supabase.from("phones").select("*").order("score_value", { ascending: false });
+  const { data, error } = await supabase.from("phones").select("*").eq("publication_status", "published").order("score_value", { ascending: false });
   if (error || !data?.length) return mockPhones;
 
   return data.map(mapPhone);
@@ -117,4 +138,60 @@ export async function getPricesByPhoneId(phoneId: string): Promise<PhonePrice[]>
   if (error || !data?.length) return mockPrices.filter((price) => price.phoneId === phoneId);
 
   return data.map(mapPrice);
+}
+
+
+export function mapReview(row: Record<string, unknown>): PhoneReview {
+  return {
+    id: stringValue(row, "id"),
+    phoneId: stringValue(row, "phone_id"),
+    rating: numberValue(row, "rating"),
+    contact: stringValue(row, "contact"),
+    ownedStatus: stringValue(row, "owned_status"),
+    pros: stringValue(row, "pros"),
+    cons: stringValue(row, "cons"),
+    comment: stringValue(row, "comment"),
+    createdAt: stringValue(row, "created_at")
+  };
+}
+
+export function mapPriceHistory(row: Record<string, unknown>): PriceHistory {
+  return {
+    id: stringValue(row, "id"),
+    phoneId: stringValue(row, "phone_id"),
+    store: stringValue(row, "store"),
+    price: numberValue(row, "price"),
+    url: stringValue(row, "url"),
+    capturedAt: stringValue(row, "captured_at")
+  };
+}
+
+export async function getReviewsByPhoneId(phoneId: string): Promise<PhoneReview[]> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("phone_reviews")
+    .select("*")
+    .eq("phone_id", phoneId)
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (error || !data?.length) return [];
+  return data.map(mapReview);
+}
+
+export async function getPriceHistoryByPhoneId(phoneId: string): Promise<PriceHistory[]> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("price_history")
+    .select("*")
+    .eq("phone_id", phoneId)
+    .order("captured_at", { ascending: false })
+    .limit(8);
+
+  if (error || !data?.length) return [];
+  return data.map(mapPriceHistory);
 }

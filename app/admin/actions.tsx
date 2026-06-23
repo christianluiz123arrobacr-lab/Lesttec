@@ -9,7 +9,30 @@ type ActionState = {
 };
 
 function numberValue(formData: FormData, key: string) {
-  return Number(String(formData.get(key) ?? "0").replace(",", "."));
+  const parsed = Number(String(formData.get(key) ?? "0").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function clampScore(value: number) {
+  return Math.min(10, Math.max(0, value));
+}
+
+function isSafeUrl(value: string) {
+  if (!value) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 function textValue(formData: FormData, key: string) {
@@ -63,7 +86,7 @@ async function requireAdmin(formData: FormData): Promise<
     .eq("id", userData.user.id)
     .maybeSingle();
 
-  if (profileError || profile?.role !== "admin") {
+  if (profileError || !["admin", "owner"].includes(String(profile?.role))) {
     return {
       ok: false,
       message: "Acesso negado. Seu usuario nao e admin."
@@ -93,7 +116,7 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
   }
 
   const name = textValue(formData, "name");
-  const slug = textValue(formData, "slug");
+  const slug = textValue(formData, "slug") || slugify(name);
   const phoneId = textValue(formData, "phone_id");
 
   if (!name || !slug) {
@@ -103,16 +126,24 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     };
   }
 
+  const affiliateUrl = textValue(formData, "affiliate_url");
+  const imageUrl = textValue(formData, "image_url");
+
+  if (!isSafeUrl(affiliateUrl) || !isSafeUrl(imageUrl)) {
+    return { ok: false, message: "Use apenas URLs https:// em imagem e links afiliados." };
+  }
+
   const payload = {
     slug,
     name,
     brand: textValue(formData, "brand"),
-    image_url: textValue(formData, "image_url"),
+    image_url: imageUrl,
     launch_status: textValue(formData, "launch_status") || "available",
+    publication_status: textValue(formData, "publication_status") || "draft",
     release_date: textValue(formData, "release_date") || new Date().toISOString().slice(0, 10),
     price: numberValue(formData, "price"),
     best_price: numberValue(formData, "best_price"),
-    affiliate_url: textValue(formData, "affiliate_url"),
+    affiliate_url: affiliateUrl,
     chipset: textValue(formData, "chipset"),
     gpu: textValue(formData, "gpu"),
     ram_gb: numberValue(formData, "ram_gb"),
@@ -153,12 +184,27 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
     network_bands: textValue(formData, "network_bands"),
     pros: textValue(formData, "pros"),
     cons: textValue(formData, "cons"),
-    score_performance: numberValue(formData, "score_performance"),
-    score_camera: numberValue(formData, "score_camera"),
-    score_battery: numberValue(formData, "score_battery"),
-    score_display: numberValue(formData, "score_display"),
-    score_build: numberValue(formData, "score_build"),
-    score_value: numberValue(formData, "score_value"),
+    score_performance: clampScore(numberValue(formData, "score_performance")),
+    score_camera: clampScore(numberValue(formData, "score_camera")),
+    score_battery: clampScore(numberValue(formData, "score_battery")),
+    score_display: clampScore(numberValue(formData, "score_display")),
+    score_build: clampScore(numberValue(formData, "score_build")),
+    score_value: clampScore(numberValue(formData, "score_value")),
+    short_review: textValue(formData, "short_review"),
+    recommended_for: textValue(formData, "recommended_for"),
+    not_recommended_for: textValue(formData, "not_recommended_for"),
+    alternatives: textValue(formData, "alternatives"),
+    min_historical_price: numberValue(formData, "min_historical_price"),
+    screen_size_in: numberValue(formData, "screen_size_in"),
+    brightness_nits: numberValue(formData, "brightness_nits"),
+    camera_sensor: textValue(formData, "camera_sensor"),
+    has_ois: booleanValue(formData, "has_ois"),
+    optical_zoom: textValue(formData, "optical_zoom"),
+    update_promise: textValue(formData, "update_promise"),
+    biometric_type: textValue(formData, "biometric_type"),
+    wireless_charging_w: numberValue(formData, "wireless_charging_w"),
+    reverse_charging: booleanValue(formData, "reverse_charging"),
+    editorial_priority: numberValue(formData, "editorial_priority"),
     verdict: textValue(formData, "verdict")
   };
 
@@ -172,6 +218,8 @@ export async function createPhoneAction(_previousState: ActionState, formData: F
       message: error.message
     };
   }
+
+  await admin.supabase.from("admin_audit_logs").insert({ action: phoneId ? "phone.update" : "phone.upsert", entity_type: "phone", entity_id: slug, metadata: { name } });
 
   revalidatePhonePages(slug);
 
@@ -207,6 +255,8 @@ export async function deletePhoneAction(_previousState: ActionState, formData: F
     };
   }
 
+  await admin.supabase.from("admin_audit_logs").insert({ action: "phone.delete", entity_type: "phone", entity_id: phoneId, metadata: { slug } });
+
   revalidatePhonePages(slug);
 
   return {
@@ -227,8 +277,10 @@ export async function saveOfferAction(_previousState: ActionState, formData: For
   const store = textValue(formData, "store");
   const price = numberValue(formData, "price");
   const url = textValue(formData, "url");
+  const coupon = textValue(formData, "coupon");
+  const cashback = textValue(formData, "cashback");
 
-  if (!phoneId || !store || !price || !url) {
+  if (!phoneId || !store || !price || !url || !isSafeUrl(url)) {
     return {
       ok: false,
       message: "Preencha loja, preco e link da oferta."
@@ -239,7 +291,11 @@ export async function saveOfferAction(_previousState: ActionState, formData: For
     phone_id: phoneId,
     store,
     price,
-    url
+    url,
+    coupon,
+    cashback,
+    in_stock: booleanValue(formData, "in_stock"),
+    trusted_store: booleanValue(formData, "trusted_store")
   });
 
   if (error) {
@@ -324,4 +380,83 @@ export async function deleteOfferAction(_previousState: ActionState, formData: F
     ok: true,
     message: "Oferta excluida."
   };
+}
+
+function parseCsvLine(line: string) {
+  const cells: string[] = [];
+  let current = "";
+  let quoted = false;
+
+  for (const char of line) {
+    if (char === '"') quoted = !quoted;
+    else if (char === "," && !quoted) {
+      cells.push(current.trim());
+      current = "";
+    } else current += char;
+  }
+
+  cells.push(current.trim());
+  return cells.map((cell) => cell.replace(/^"|"$/g, ""));
+}
+
+export async function importPhonesCsvAction(_previousState: ActionState, formData: FormData): Promise<ActionState> {
+  const admin = await requireAdmin(formData);
+
+  if (!admin.ok) return admin;
+
+  const csv = textValue(formData, "csv");
+  const rows = csv.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+
+  if (rows.length < 2) return { ok: false, message: "Cole um CSV com cabecalho e pelo menos uma linha." };
+
+  const headers = parseCsvLine(rows[0]).map((header) => header.trim());
+  const allowed = new Set([
+    "name",
+    "slug",
+    "brand",
+    "image_url",
+    "price",
+    "best_price",
+    "affiliate_url",
+    "chipset",
+    "ram_gb",
+    "storage_gb",
+    "battery_mah",
+    "main_camera_mp",
+    "antutu_score",
+    "score_value",
+    "publication_status"
+  ]);
+
+  const payloads = rows.slice(1).map((line) => {
+    const cells = parseCsvLine(line);
+    const row: Record<string, string | number> = {};
+    headers.forEach((header, index) => {
+      if (!allowed.has(header)) return;
+      const value = cells[index] ?? "";
+      row[header] = ["price", "best_price", "ram_gb", "storage_gb", "battery_mah", "main_camera_mp", "antutu_score", "score_value"].includes(header)
+        ? Number(value.replace(",", ".")) || 0
+        : value;
+    });
+    row.name = String(row.name ?? "").trim();
+    row.slug = String(row.slug || slugify(String(row.name)));
+    row.publication_status = String(row.publication_status || "draft");
+    return row;
+  }).filter((row) => row.name && row.slug);
+
+  if (!payloads.length) return { ok: false, message: "Nenhum celular valido encontrado no CSV." };
+
+  const { error } = await admin.supabase.from("phones").upsert(payloads, { onConflict: "slug" });
+
+  if (error) return { ok: false, message: error.message };
+
+  await admin.supabase.from("admin_audit_logs").insert({
+    action: "phone.csv_import",
+    entity_type: "phone",
+    metadata: { count: payloads.length }
+  });
+
+  revalidatePhonePages();
+
+  return { ok: true, message: `${payloads.length} celulares importados/atualizados.` };
 }

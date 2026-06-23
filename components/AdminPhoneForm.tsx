@@ -1,312 +1,141 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { createPhoneAction } from "@/app/admin/actions";
 import type { Phone } from "@/lib/types";
 
-const initialState = {
-  ok: false,
-  message: ""
-};
+const initialState = { ok: false, message: "" };
+const tabs = ["Básico", "Preços", "Hardware", "Tela/Câmera", "Extras", "Editorial", "Notas"];
 
 function dateValue(value?: string) {
   return value ? value.slice(0, 10) : "";
 }
 
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 export function AdminPhoneForm({ accessToken, phone }: { accessToken: string; phone?: Phone | null }) {
   const [state, action, pending] = useActionState(createPhoneAction, initialState);
+  const [tab, setTab] = useState(tabs[0]);
+  const [name, setName] = useState(phone?.name ?? "");
+  const [slug, setSlug] = useState(phone?.slug ?? "");
+  const isDuplicate = useMemo(() => false, []);
+
+  function updateName(value: string) {
+    setName(value);
+    if (!phone && (!slug || slug === slugify(name))) setSlug(slugify(value));
+  }
 
   return (
     <form className="form-card" action={action}>
       <input name="access_token" type="hidden" value={accessToken} />
       <input name="phone_id" type="hidden" value={phone?.id ?? ""} />
-      <h3 style={{ marginTop: 0 }}>{phone ? "Editar celular" : "Cadastrar celular"}</h3>
+      <div className="admin-heading">
+        <div>
+          <h3>{phone ? "Editar celular" : "Cadastrar celular"}</h3>
+          <p className="muted">Cadastro em etapas, com slug automático e campos editoriais.</p>
+        </div>
+        {phone ? (
+          <button className="button ghost" type="button" onClick={() => { setName(`${phone.name} cópia`); setSlug(`${phone.slug}-copia`); }}>
+            Duplicar dados
+          </button>
+        ) : null}
+      </div>
+
+      <div className="admin-tabs">
+        {tabs.map((item) => (
+          <button className={item === tab ? "active" : ""} key={item} type="button" onClick={() => setTab(item)}>
+            {item}
+          </button>
+        ))}
+      </div>
+
       <div className="form-grid">
-        <div className="field">
+        <div className={tab === "Básico" ? "field" : "hidden-field"}>
           <label>Nome</label>
-          <input name="name" defaultValue={phone?.name ?? ""} placeholder="POCO X8 Pro" required />
+          <input name="name" value={name} onChange={(event) => updateName(event.target.value)} placeholder="POCO X8 Pro" required />
         </div>
-        <div className="field">
+        <div className={tab === "Básico" ? "field" : "hidden-field"}>
           <label>Slug</label>
-          <input name="slug" defaultValue={phone?.slug ?? ""} placeholder="poco-x8-pro" required />
+          <input name="slug" value={slug} onChange={(event) => setSlug(slugify(event.target.value))} placeholder="poco-x8-pro" required />
         </div>
-        <div className="field">
+        <div className={tab === "Básico" ? "field" : "hidden-field"}>
           <label>Marca</label>
           <input name="brand" defaultValue={phone?.brand ?? ""} placeholder="Xiaomi" />
         </div>
-        <div className="field">
-          <label>Status</label>
+        <div className={tab === "Básico" ? "field" : "hidden-field"}>
+          <label>Status de lançamento</label>
           <select name="launch_status" defaultValue={phone?.launchStatus ?? "available"}>
-            <option value="available">Disponivel</option>
-            <option value="new">Novo</option>
-            <option value="rumor">Rumor</option>
+            <option value="available">Disponível</option><option value="new">Novo</option><option value="rumor">Rumor</option>
           </select>
         </div>
-        <div className="field full">
-          <label>Imagem</label>
-          <input name="image_url" defaultValue={phone?.imageUrl ?? ""} placeholder="https://..." />
+        <div className={tab === "Básico" ? "field" : "hidden-field"}>
+          <label>Publicação</label>
+          <select name="publication_status" defaultValue={phone?.publicationStatus ?? "draft"}>
+            <option value="draft">Rascunho</option><option value="review">Revisão</option><option value="published">Publicado</option><option value="archived">Arquivado</option>
+          </select>
         </div>
-        <div className="field">
-          <label>Preco medio</label>
-          <input name="price" type="number" step="0.01" defaultValue={phone?.price ?? ""} placeholder="2590" />
-        </div>
-        <div className="field">
-          <label>Melhor preco</label>
-          <input name="best_price" type="number" step="0.01" defaultValue={phone?.bestPrice ?? ""} placeholder="2399" />
-        </div>
-        <div className="field full">
-          <label>Link afiliado principal</label>
-          <input name="affiliate_url" defaultValue={phone?.affiliateUrl ?? ""} placeholder="https://..." />
-        </div>
-        <div className="field">
-          <label>Processador</label>
-          <input name="chipset" defaultValue={phone?.chipset ?? ""} placeholder="Dimensity 8400 Ultra" />
-        </div>
-        <div className="field">
-          <label>GPU</label>
-          <input name="gpu" defaultValue={phone?.gpu ?? ""} placeholder="Mali-G720 / Adreno..." />
-        </div>
-        <div className="field">
-          <label>Sistema</label>
-          <input name="os" defaultValue={phone?.os ?? ""} placeholder="Android 16 / HyperOS" />
-        </div>
-        <div className="field">
-          <label>RAM GB</label>
-          <input name="ram_gb" type="number" defaultValue={phone?.ramGb ?? ""} placeholder="12" />
-        </div>
-        <div className="field">
-          <label>Tipo de RAM</label>
-          <input name="ram_type" defaultValue={phone?.ramType ?? ""} placeholder="LPDDR5X" />
-        </div>
-        <div className="field">
-          <label>Armazenamento GB</label>
-          <input name="storage_gb" type="number" defaultValue={phone?.storageGb ?? ""} placeholder="512" />
-        </div>
-        <div className="field">
-          <label>Tipo de armazenamento</label>
-          <input name="storage_type" defaultValue={phone?.storageType ?? ""} placeholder="UFS 4.0" />
-        </div>
-        <div className="field">
-          <label>Tela</label>
-          <input name="display" defaultValue={phone?.display ?? ""} placeholder="6.67 AMOLED, 1.5K" />
-        </div>
-        <div className="field">
-          <label>Tipo de tela</label>
-          <input name="screen_type" defaultValue={phone?.screenType ?? ""} placeholder="AMOLED / LTPO OLED" />
-        </div>
-        <div className="field">
-          <label>Resolucao da tela</label>
-          <input name="screen_resolution" defaultValue={phone?.screenResolution ?? ""} placeholder="2712 x 1220 pixels" />
-        </div>
-        <div className="field">
-          <label>Hz</label>
-          <input name="display_hz" type="number" defaultValue={phone?.displayHz ?? ""} placeholder="120" />
-        </div>
-        <div className="field">
-          <label>Bateria mAh</label>
-          <input name="battery_mah" type="number" defaultValue={phone?.batteryMah ?? ""} placeholder="5000" />
-        </div>
-        <div className="field">
-          <label>Carregamento W</label>
-          <input name="charging_w" type="number" defaultValue={phone?.chargingW ?? ""} placeholder="90" />
-        </div>
-        <div className="field">
-          <label>Camera principal MP</label>
-          <input name="main_camera_mp" type="number" defaultValue={phone?.mainCameraMp ?? ""} placeholder="50" />
-        </div>
-        <div className="field">
-          <label>Camera ultrawide MP</label>
-          <input name="ultrawide_camera_mp" type="number" defaultValue={phone?.ultrawideCameraMp ?? ""} placeholder="8" />
-        </div>
-        <div className="field">
-          <label>Camera telefoto MP</label>
-          <input name="telephoto_camera_mp" type="number" defaultValue={phone?.telephotoCameraMp ?? ""} placeholder="50" />
-        </div>
-        <div className="field">
-          <label>Camera frontal MP</label>
-          <input name="selfie_camera_mp" type="number" defaultValue={phone?.selfieCameraMp ?? ""} placeholder="20" />
-        </div>
-        <div className="field">
-          <label>Video</label>
-          <input name="video" defaultValue={phone?.video ?? ""} placeholder="4K" />
-        </div>
-        <div className="field">
-          <label>AnTuTu</label>
-          <input name="antutu_score" type="number" defaultValue={phone?.antutuScore ?? ""} placeholder="1450000" />
-        </div>
-        <div className="field">
-          <label>Versao AnTuTu</label>
-          <input name="antutu_version" defaultValue={phone?.antutuVersion ?? ""} placeholder="v11" />
-        </div>
-        <div className="field">
-          <label>Altura mm</label>
-          <input name="height_mm" type="number" step="0.01" defaultValue={phone?.heightMm ?? ""} placeholder="162.9" />
-        </div>
-        <div className="field">
-          <label>Largura mm</label>
-          <input name="width_mm" type="number" step="0.01" defaultValue={phone?.widthMm ?? ""} placeholder="77.9" />
-        </div>
-        <div className="field">
-          <label>Espessura mm</label>
-          <input
-            name="thickness_mm"
-            type="number"
-            step="0.01"
-            defaultValue={phone?.thicknessMm ?? ""}
-            placeholder="8.1"
-          />
-        </div>
-        <div className="field">
-          <label>Peso g</label>
-          <input name="weight_g" type="number" defaultValue={phone?.weightG ?? ""} placeholder="218" />
-        </div>
-        <div className="field">
-          <label>Resistencia</label>
-          <input name="water_resistance" defaultValue={phone?.waterResistance ?? ""} placeholder="IP68" />
-        </div>
-        <div className="field">
-          <label>Protecao da tela</label>
-          <input name="protection" defaultValue={phone?.protection ?? ""} placeholder="Gorilla Glass Victus" />
-        </div>
-        <div className="field">
-          <label>USB</label>
-          <input name="usb_type" defaultValue={phone?.usbType ?? ""} placeholder="USB-C 2.0" />
-        </div>
-        <div className="field">
-          <label>Wi-Fi</label>
-          <input name="wifi" defaultValue={phone?.wifi ?? ""} placeholder="Wi-Fi 6 / 7" />
-        </div>
-        <div className="field">
-          <label>Bluetooth</label>
-          <input name="bluetooth" defaultValue={phone?.bluetooth ?? ""} placeholder="5.4" />
-        </div>
-        <div className="field">
-          <label>GPS</label>
-          <input name="gps" defaultValue={phone?.gps ?? ""} placeholder="GPS, GLONASS, Galileo" />
-        </div>
-        <div className="field full">
-          <label>Bandas e redes</label>
-          <textarea name="network_bands" defaultValue={phone?.networkBands ?? ""} placeholder="5G: n1, n3, n7... / 4G: B1, B3..." />
-        </div>
-        <div className="field full">
-          <label>Recursos</label>
-          <div className="checkbox-grid">
-            <label className="checkbox-line">
-              <input name="five_g" type="checkbox" defaultChecked={phone?.fiveG ?? true} /> 5G
-            </label>
-            <label className="checkbox-line">
-              <input name="nfc" type="checkbox" defaultChecked={phone?.nfc ?? true} /> NFC
-            </label>
-            <label className="checkbox-line">
-              <input name="dual_sim" type="checkbox" defaultChecked={phone?.dualSim ?? true} /> Dual SIM
-            </label>
-            <label className="checkbox-line">
-              <input name="esim" type="checkbox" defaultChecked={phone?.esim ?? false} /> eSIM
-            </label>
-            <label className="checkbox-line">
-              <input name="memory_card" type="checkbox" defaultChecked={phone?.memoryCard ?? false} /> Cartao de memoria
-            </label>
-            <label className="checkbox-line">
-              <input name="stereo_speakers" type="checkbox" defaultChecked={phone?.stereoSpeakers ?? true} /> Som stereo
-            </label>
-            <label className="checkbox-line">
-              <input name="audio_jack" type="checkbox" defaultChecked={phone?.audioJack ?? false} /> Entrada P2
-            </label>
-          </div>
-        </div>
-        <div className="field">
-          <label>Lancamento</label>
+        <div className={tab === "Básico" ? "field" : "hidden-field"}>
+          <label>Lançamento</label>
           <input name="release_date" type="date" defaultValue={dateValue(phone?.releaseDate)} />
         </div>
-        <div className="field">
-          <label>Nota desempenho</label>
-          <input
-            name="score_performance"
-            type="number"
-            step="0.1"
-            min="0"
-            max="10"
-            defaultValue={phone?.scorePerformance ?? ""}
-            placeholder="9.3"
-          />
+        <div className={tab === "Básico" ? "field full" : "hidden-field"}>
+          <label>Imagem https://</label>
+          <input name="image_url" defaultValue={phone?.imageUrl ?? ""} placeholder="https://..." />
         </div>
-        <div className="field">
-          <label>Nota camera</label>
-          <input
-            name="score_camera"
-            type="number"
-            step="0.1"
-            min="0"
-            max="10"
-            defaultValue={phone?.scoreCamera ?? ""}
-            placeholder="7.7"
-          />
-        </div>
-        <div className="field">
-          <label>Nota bateria</label>
-          <input
-            name="score_battery"
-            type="number"
-            step="0.1"
-            min="0"
-            max="10"
-            defaultValue={phone?.scoreBattery ?? ""}
-            placeholder="8.5"
-          />
-        </div>
-        <div className="field">
-          <label>Nota tela</label>
-          <input
-            name="score_display"
-            type="number"
-            step="0.1"
-            min="0"
-            max="10"
-            defaultValue={phone?.scoreDisplay ?? ""}
-            placeholder="8.9"
-          />
-        </div>
-        <div className="field">
-          <label>Nota construcao</label>
-          <input
-            name="score_build"
-            type="number"
-            step="0.1"
-            min="0"
-            max="10"
-            defaultValue={phone?.scoreBuild ?? ""}
-            placeholder="8.2"
-          />
-        </div>
-        <div className="field">
-          <label>Nota custo-beneficio</label>
-          <input
-            name="score_value"
-            type="number"
-            step="0.1"
-            min="0"
-            max="10"
-            defaultValue={phone?.scoreValue ?? ""}
-            placeholder="9.1"
-          />
-        </div>
-        <div className="field full">
-          <label>Veredito</label>
-          <textarea name="verdict" defaultValue={phone?.verdict ?? ""} placeholder="Vale a pena ate R$ 2700..." />
-        </div>
-        <div className="field full">
-          <label>Pros</label>
-          <textarea name="pros" defaultValue={phone?.pros ?? ""} placeholder="Um ponto por linha: desempenho forte, tela boa..." />
-        </div>
-        <div className="field full">
-          <label>Contras</label>
-          <textarea name="cons" defaultValue={phone?.cons ?? ""} placeholder="Um ponto por linha: sem carregador, esquenta..." />
-        </div>
+
+        <div className={tab === "Preços" ? "field" : "hidden-field"}><label>Preço médio</label><input name="price" type="number" step="0.01" defaultValue={phone?.price ?? ""} /></div>
+        <div className={tab === "Preços" ? "field" : "hidden-field"}><label>Melhor preço</label><input name="best_price" type="number" step="0.01" defaultValue={phone?.bestPrice ?? ""} /></div>
+        <div className={tab === "Preços" ? "field" : "hidden-field"}><label>Menor preço histórico</label><input name="min_historical_price" type="number" step="0.01" defaultValue={phone?.minHistoricalPrice ?? ""} /></div>
+        <div className={tab === "Preços" ? "field" : "hidden-field"}><label>Prioridade editorial</label><input name="editorial_priority" type="number" defaultValue={phone?.editorialPriority ?? ""} /></div>
+        <div className={tab === "Preços" ? "field full" : "hidden-field"}><label>Link afiliado principal https://</label><input name="affiliate_url" defaultValue={phone?.affiliateUrl ?? ""} placeholder="https://..." /></div>
+
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>Processador</label><input name="chipset" defaultValue={phone?.chipset ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>GPU</label><input name="gpu" defaultValue={phone?.gpu ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>Sistema</label><input name="os" defaultValue={phone?.os ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>RAM GB</label><input name="ram_gb" type="number" defaultValue={phone?.ramGb ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>Tipo RAM</label><input name="ram_type" defaultValue={phone?.ramType ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>Armazenamento GB</label><input name="storage_gb" type="number" defaultValue={phone?.storageGb ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>Tipo armazenamento</label><input name="storage_type" defaultValue={phone?.storageType ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>AnTuTu</label><input name="antutu_score" type="number" defaultValue={phone?.antutuScore ?? ""} /></div>
+        <div className={tab === "Hardware" ? "field" : "hidden-field"}><label>Versão AnTuTu</label><input name="antutu_version" defaultValue={phone?.antutuVersion ?? ""} /></div>
+
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Tela</label><input name="display" defaultValue={phone?.display ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Tamanho pol.</label><input name="screen_size_in" type="number" step="0.01" defaultValue={phone?.screenSizeIn ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Tipo tela</label><input name="screen_type" defaultValue={phone?.screenType ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Resolução</label><input name="screen_resolution" defaultValue={phone?.screenResolution ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Hz</label><input name="display_hz" type="number" defaultValue={phone?.displayHz ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Brilho nits</label><input name="brightness_nits" type="number" defaultValue={phone?.brightnessNits ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Câmera principal MP</label><input name="main_camera_mp" type="number" defaultValue={phone?.mainCameraMp ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Ultrawide MP</label><input name="ultrawide_camera_mp" type="number" defaultValue={phone?.ultrawideCameraMp ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Telefoto MP</label><input name="telephoto_camera_mp" type="number" defaultValue={phone?.telephotoCameraMp ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Frontal MP</label><input name="selfie_camera_mp" type="number" defaultValue={phone?.selfieCameraMp ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Sensor</label><input name="camera_sensor" defaultValue={phone?.cameraSensor ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Zoom óptico</label><input name="optical_zoom" defaultValue={phone?.opticalZoom ?? ""} /></div>
+        <div className={tab === "Tela/Câmera" ? "field" : "hidden-field"}><label>Vídeo</label><input name="video" defaultValue={phone?.video ?? ""} /></div>
+        <label className={tab === "Tela/Câmera" ? "checkbox-line" : "hidden-field"}><input name="has_ois" type="checkbox" defaultChecked={phone?.hasOis ?? false} /> OIS</label>
+
+        {[
+          ["battery_mah", "Bateria mAh", phone?.batteryMah], ["charging_w", "Carregamento W", phone?.chargingW], ["wireless_charging_w", "Carregamento sem fio W", phone?.wirelessChargingW], ["height_mm", "Altura mm", phone?.heightMm], ["width_mm", "Largura mm", phone?.widthMm], ["thickness_mm", "Espessura mm", phone?.thicknessMm], ["weight_g", "Peso g", phone?.weightG]
+        ].map(([nameAttr, label, value]) => <div className={tab === "Extras" ? "field" : "hidden-field"} key={String(nameAttr)}><label>{label}</label><input name={String(nameAttr)} type="number" step="0.01" defaultValue={value ?? ""} /></div>)}
+        {[
+          ["water_resistance", "Resistência", phone?.waterResistance], ["protection", "Proteção", phone?.protection], ["usb_type", "USB", phone?.usbType], ["wifi", "Wi-Fi", phone?.wifi], ["bluetooth", "Bluetooth", phone?.bluetooth], ["gps", "GPS", phone?.gps], ["biometric_type", "Biometria", phone?.biometricType], ["update_promise", "Promessa de updates", phone?.updatePromise]
+        ].map(([nameAttr, label, value]) => <div className={tab === "Extras" ? "field" : "hidden-field"} key={String(nameAttr)}><label>{label}</label><input name={String(nameAttr)} defaultValue={String(value ?? "")} /></div>)}
+        <div className={tab === "Extras" ? "field full" : "hidden-field"}><label>Bandas</label><textarea name="network_bands" defaultValue={phone?.networkBands ?? ""} /></div>
+        <div className={tab === "Extras" ? "field full" : "hidden-field"}><label>Recursos</label><div className="checkbox-grid">{[["five_g","5G",phone?.fiveG ?? true],["nfc","NFC",phone?.nfc ?? true],["dual_sim","Dual SIM",phone?.dualSim ?? true],["esim","eSIM",phone?.esim ?? false],["memory_card","Cartão",phone?.memoryCard ?? false],["stereo_speakers","Som stereo",phone?.stereoSpeakers ?? true],["audio_jack","P2",phone?.audioJack ?? false],["reverse_charging","Carga reversa",phone?.reverseCharging ?? false]].map(([n,l,v]) => <label className="checkbox-line" key={String(n)}><input name={String(n)} type="checkbox" defaultChecked={Boolean(v)} /> {l}</label>)}</div></div>
+
+        {[["short_review","Resumo curto",phone?.shortReview],["recommended_for","Indicado para",phone?.recommendedFor],["not_recommended_for","Não indicado para",phone?.notRecommendedFor],["alternatives","Alternativas",phone?.alternatives],["verdict","Veredito",phone?.verdict],["pros","Prós",phone?.pros],["cons","Contras",phone?.cons]].map(([n,l,v]) => <div className={tab === "Editorial" ? "field full" : "hidden-field"} key={String(n)}><label>{l}</label><textarea name={String(n)} defaultValue={String(v ?? "")} /></div>)}
+
+        {[["score_performance","Nota desempenho",phone?.scorePerformance],["score_camera","Nota câmera",phone?.scoreCamera],["score_battery","Nota bateria",phone?.scoreBattery],["score_display","Nota tela",phone?.scoreDisplay],["score_build","Nota construção",phone?.scoreBuild],["score_value","Nota custo-benefício",phone?.scoreValue]].map(([n,l,v]) => <div className={tab === "Notas" ? "field" : "hidden-field"} key={String(n)}><label>{l}</label><input name={String(n)} type="number" step="0.1" min="0" max="10" defaultValue={v ?? ""} /></div>)}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 18 }}>
-        <button className="button" disabled={pending} type="submit">
-          {pending ? "Salvando..." : "Salvar celular"}
-        </button>
+      <div className="form-actions">
+        <button className="button" disabled={pending} type="submit">{pending ? "Salvando..." : "Salvar celular"}</button>
         {state.message ? <span className={state.ok ? "winner" : "muted"}>{state.message}</span> : null}
       </div>
     </form>

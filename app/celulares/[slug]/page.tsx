@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Header } from "@/components/Header";
+import { PhoneEngagementPanel } from "@/components/PhoneEngagementPanel";
 import { PhoneSizeCompare } from "@/components/PhoneSizeCompare";
 import { ScoreRows } from "@/components/ScoreRows";
-import { getPhoneBySlug, getPhones, getPricesByPhoneId } from "@/lib/phones";
+import { getPhoneBySlug, getPhones, getPriceHistoryByPhoneId, getPricesByPhoneId, getReviewsByPhoneId } from "@/lib/phones";
 import { finalScore, formatCurrency, formatNumber } from "@/lib/scoring";
 
 function yesNo(value: boolean) {
@@ -21,6 +23,17 @@ function listLines(value: string) {
     .filter(Boolean);
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const phone = await getPhoneBySlug(slug);
+  if (!phone) return { title: "Celular não encontrado" };
+  return {
+    title: `${phone.name}: ficha técnica, preço e ofertas`,
+    description: phone.shortReview || phone.verdict || `Veja ficha técnica, preço, ofertas e nota do ${phone.name}.`,
+    openGraph: { title: phone.name, description: phone.shortReview || phone.verdict, images: phone.imageUrl ? [phone.imageUrl] : [] }
+  };
+}
+
 export async function generateStaticParams() {
   const phones = await getPhones();
   return phones.map((phone) => ({ slug: phone.slug }));
@@ -33,6 +46,8 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
 
   const phones = await getPhones();
   const prices = await getPricesByPhoneId(phone.id);
+  const reviews = await getReviewsByPhoneId(phone.id);
+  const priceHistory = await getPriceHistoryByPhoneId(phone.id);
   const similar = phones.filter((item) => item.id !== phone.id).slice(0, 2);
   const pros = listLines(phone.pros);
   const cons = listLines(phone.cons);
@@ -41,13 +56,27 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
     <>
       <Header />
       <main>
-        <section className="detail-hero">
+        <section className="detail-hero premium-detail-hero">
           <div className="shell detail-grid">
-            <img className="product-shot" src={phone.imageUrl} alt={phone.name} />
-            <div>
+            <div className="product-stage">
+              <span className="product-glow" />
+              <img className="product-shot" src={phone.imageUrl} alt={phone.name} />
+              <div className="hero-score-ring">
+                <strong>{finalScore(phone)}</strong>
+                <span>nota</span>
+              </div>
+            </div>
+            <div className="detail-copy">
               <p className="eyebrow">{phone.brand}</p>
               <h1>{phone.name}</h1>
               <p>{phone.verdict}</p>
+              <div className="hero-badges">
+                {phone.fiveG ? <span>5G</span> : null}
+                {phone.nfc ? <span>NFC</span> : null}
+                {phone.hasOis ? <span>OIS</span> : null}
+                {phone.waterResistance ? <span>{phone.waterResistance}</span> : null}
+                {phone.wirelessChargingW ? <span>Qi {phone.wirelessChargingW} W</span> : null}
+              </div>
               <div className="spec-grid">
                 <div className="spec-tile">
                   <strong>{phone.ramGb} GB</strong>
@@ -79,18 +108,82 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 </div>
               </div>
             </div>
-            <aside className="buy-box">
-              <span className="muted">Melhor preco</span>
+            <aside className="buy-box premium-buy-box">
+              <span className="deal-label">Melhor oferta encontrada</span>
               <h2>{formatCurrency(phone.bestPrice)}</h2>
               <p className="muted">Preco medio cadastrado: {formatCurrency(phone.price)}</p>
-              <a className="button" href={phone.affiliateUrl}>
+              <div className="buy-box-mini">
+                <span>{prices.length} lojas</span>
+                <span>{phone.minHistoricalPrice ? `Histórico ${formatCurrency(phone.minHistoricalPrice)}` : "Histórico em breve"}</span>
+              </div>
+              <a className="button" href={prices[0] ? `/oferta/${prices[0].id}` : phone.affiliateUrl}>
                 Ver oferta
+              </a>
+              <a className="button ghost" href="#engajamento">
+                Criar alerta
               </a>
             </aside>
           </div>
         </section>
 
-        <section className="section">
+        <section className="phone-action-section">
+          <div className="shell phone-action-bar">
+            <a href="#resumo">Resumo</a>
+            <a href="#ofertas">Ofertas</a>
+            <a href="#ficha">Ficha técnica</a>
+            <a href="#historico">Histórico</a>
+            <a href="#opinioes">Opiniões</a>
+            <a href={`/comparar/${phone.slug}-vs-${similar[0]?.slug || phone.slug}`}>Comparar</a>
+            <a href="#engajamento">Quero comprar</a>
+          </div>
+        </section>
+
+        <section className="section" id="resumo">
+          <div className="shell">
+            <div className="kimovil-summary-board">
+              <div className="kimovil-score-card">
+                <span>Nota "K"</span>
+                <strong>{finalScore(phone)}</strong>
+                <small>Qualidade-preço</small>
+                <div className="radar-shape" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+              </div>
+              <div className="kimovil-summary-card user-rating-card">
+                <span>Avaliação dos usuários</span>
+                <strong>{reviews.length ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : finalScore(phone)}</strong>
+                <div className="mini-bars"><i /><i /><i /></div>
+                <small>{reviews.length || "Sem"} opiniões</small>
+              </div>
+              <div className="kimovil-summary-card efficiency-card">
+                <span>Eficiência</span>
+                <strong>{phone.scoreBattery >= 8.5 && phone.scorePerformance >= 8.5 ? "A" : phone.scoreValue >= 8 ? "B" : "C"}</strong>
+                <small>Energia / desempenho</small>
+              </div>
+              <div className="kimovil-summary-card good-bad-card">
+                <div>
+                  <strong>O bom</strong>
+                  <ul>
+                    {(pros.length ? pros : ["Bateria", "qualidade de exibição", phone.nfc ? "NFC" : "preço", "desempenho"]).slice(0, 4).map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <strong>Melhorar</strong>
+                  <ul>
+                    {(cons.length ? cons : ["Verificar preço", "câmeras extras", "disponibilidade"]).slice(0, 3).map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="kimovil-spec-strip">
+              <span><strong>{phone.screenSizeIn || "-"}"</strong>{phone.screenType || "Tela"}</span>
+              <span><strong>{phone.weightG} g</strong>{phone.heightMm} x {phone.widthMm} mm</span>
+              <span><strong>{phone.chipset || "Chipset"}</strong>{phone.ramGb} GB RAM</span>
+              <span><strong>{formatNumber(phone.antutuScore)}</strong>AnTuTu {phone.antutuVersion}</span>
+              <span><strong>{phone.batteryMah} mAh</strong>{phone.chargingW} W</span>
+              <span><strong>{phone.mainCameraMp} MP</strong>{phone.cameraSensor || "Câmera"}</span>
+              <span><strong>{phone.os || "Sistema"}</strong>{phone.fiveG ? "5G" : "4G"} {phone.nfc ? "• NFC" : ""}</span>
+            </div>
+          </div>
+
           <div className="shell ranking">
             <div className="rank-list">
               <h3>Pontuacao</h3>
@@ -105,20 +198,30 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 ]}
               />
             </div>
-            <div className="rank-list">
+            <div className="rank-list" id="ofertas">
               <h3>Ofertas cadastradas</h3>
               {prices.length ? (
                 prices.map((price) => (
-                  <a className="rank-item" href={price.url} key={price.id}>
-                    <strong>{price.store}</strong>
-                    <span />
-                    <span className="muted">Atualizado em {price.updatedAt}</span>
+                  <a className="offer-card" href={`/oferta/${price.id}`} key={price.id}>
+                    <span className="store-logo">{price.store.slice(0, 1).toUpperCase()}</span>
+                    <span>
+                      <strong>{price.store}</strong>
+                      <small>
+                        {price.inStock ? "Em estoque" : "Sem estoque"}
+                        {price.coupon ? ` • Cupom ${price.coupon}` : ""}
+                        {price.cashback ? ` • Cashback ${price.cashback}` : ""}
+                      </small>
+                      <small>{price.trustedStore ? "Loja confiável" : "Verifique a loja"} • Atualizado em {price.updatedAt ? new Date(price.updatedAt).toLocaleDateString("pt-BR") : "breve"}</small>
+                    </span>
                     <strong className="price">{formatCurrency(price.price)}</strong>
+                    {price.coupon ? <span className="coupon-pill">{price.coupon}</span> : null}
+                    <span className="button offer-button">Ir para loja</span>
                   </a>
                 ))
               ) : (
                 <p className="muted">Nenhuma oferta cadastrada ainda.</p>
               )}
+              <p className="affiliate-note">Podemos receber comissao pelos links. Isso nao altera o preco para voce.</p>
             </div>
           </div>
         </section>
@@ -154,7 +257,53 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
           </section>
         ) : null}
 
+        {(phone.shortReview || phone.recommendedFor || phone.notRecommendedFor || phone.alternatives) ? (
+          <section className="section">
+            <div className="shell ranking">
+              <div className="rank-list"><h3>Resumo de compra</h3><p>{phone.shortReview || phone.verdict}</p><p className="muted">Indicado para: {textOrDash(phone.recommendedFor)}</p><p className="muted">Evite se: {textOrDash(phone.notRecommendedFor)}</p></div>
+              <div className="rank-list"><h3>Alternativas</h3><p>{textOrDash(phone.alternatives)}</p><p className="muted">Menor preço histórico: {formatCurrency(phone.minHistoricalPrice)}</p></div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="section" id="historico">
+          <div className="shell">
+            <PhoneEngagementPanel phone={phone} />
+          </div>
+        </section>
+
         <section className="section">
+          <div className="shell ranking">
+            <div className="rank-list" id="opinioes">
+              <h3>Historico de preco</h3>
+              {priceHistory.length ? (
+                <div className="history-grid">
+                  {priceHistory.map((item) => (
+                    <a className="history-item" href={item.url || "#"} key={item.id}>
+                      <span>{item.store}</span>
+                      <strong>{formatCurrency(item.price)}</strong>
+                      <small>{item.capturedAt ? new Date(item.capturedAt).toLocaleDateString("pt-BR") : "Data nao cadastrada"}</small>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">Sem historico salvo ainda. Ao registrar capturas em price_history, o grafico evolui aqui.</p>
+              )}
+            </div>
+            <div className="rank-list">
+              <h3>Opinioes da comunidade</h3>
+              {reviews.length ? reviews.map((review) => (
+                <article className="review-card" key={review.id}>
+                  <strong>{review.rating}/10 • {review.contact || "Usuario"}</strong>
+                  <p>{review.comment}</p>
+                  <small className="muted">Prós: {textOrDash(review.pros)} • Contras: {textOrDash(review.cons)}</small>
+                </article>
+              )) : <p className="muted">Seja o primeiro a avaliar esse celular.</p>}
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="ficha">
           <div className="shell">
             <div className="section-header">
               <div>
@@ -187,9 +336,9 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>Tela</th>
                   <td>
-                    {phone.display}, {phone.displayHz} Hz
+                    {phone.screenSizeIn ? `${phone.screenSizeIn} pol., ` : ""}{phone.display}, {phone.displayHz} Hz
                     {phone.screenResolution ? `, ${phone.screenResolution}` : ""}
-                    {phone.protection ? `, ${phone.protection}` : ""}
+                    {phone.protection ? `, ${phone.protection}` : ""}{phone.brightnessNits ? `, ${phone.brightnessNits} nits` : ""}
                   </td>
                 </tr>
                 <tr>
@@ -201,7 +350,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>Camera principal</th>
                   <td>
-                    {phone.mainCameraMp} MP, video {phone.video}
+                    {phone.mainCameraMp} MP{phone.cameraSensor ? `, ${phone.cameraSensor}` : ""}{phone.hasOis ? ", OIS" : ""}{phone.opticalZoom ? `, zoom ${phone.opticalZoom}` : ""}, video {phone.video}
                   </td>
                 </tr>
                 <tr>
@@ -214,7 +363,7 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>Bateria e carregamento</th>
                   <td>
-                    {phone.batteryMah} mAh / {phone.chargingW} W
+                    {phone.batteryMah} mAh / {phone.chargingW} W{phone.wirelessChargingW ? ` / sem fio ${phone.wirelessChargingW} W` : ""}{phone.reverseCharging ? " / reverso" : ""}
                   </td>
                 </tr>
                 <tr>
@@ -248,6 +397,10 @@ export default async function PhoneDetailPage({ params }: { params: Promise<{ sl
                 <tr>
                   <th>USB</th>
                   <td>{textOrDash(phone.usbType)}</td>
+                </tr>
+                <tr>
+                  <th>Updates e biometria</th>
+                  <td>{textOrDash(phone.updatePromise)} / {textOrDash(phone.biometricType)}</td>
                 </tr>
                 <tr>
                   <th>Bandas</th>
